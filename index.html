@@ -77,36 +77,40 @@
         <button onclick="startGame()">Start Game</button>
       </div>
       <div id="player-list"></div>
-    </div>  
-    <div id="host-timer-container" style="display: none;">
-      <div id="host-time-left">10</div>
-      <div class="progress-bar">
-        <div id="host-progress-fill" class="progress-fill"></div>
-      </div>
     </div>
-    <div id="host-question-area"></div>
-        <div id="scoreboard" style="display: none;">
-      <h2>Final Scores</h2>
-      <div id="score-list"></div>
+    <div id="host-question-area">
+      <div id="choose-topic" style="display:none;">
+        <h1>20 Questions</h1>
+        <h5>Select the category</h5>
+        <ul>
+          <li>South Park</li>
+          <li>Friends</li>
+          <li>Harry Potter</li>
+          <li>Horror Films</li>
+          <li>Horror Baddies</li>
+          <li>Disney Films</li>
+          <li>Disney Characters</li>
+        </ul>
     </div>
 
   </div>
 
-  <div id="player-screen" class="screen">
-    <div id="timer-container" style="display:none;">
-      <div id="timer-text">Time left: <span id="time-left">10</span> seconds</div>
-      <div id="player-progress-bar" class="progress-bar">
-        <div id="player-progress-fill" class="progress-fill"></div>
-      </div>
-    </div>
+  </div>
 
+  <div id="player-screen" class="screen">
     <div id="join-container" class="screen">
       <h1>Join Quiz</h1>
       <input type="text" id="code-input" placeholder="Enter game code" />
       <input type="text" id="player-name" placeholder="Your name" />
       <button onclick="joinGame()">Join</button>
     </div>  
-     <div id="player-question-area"></div>
+     <div id="player-question-area" style="display:none;">
+       <div id="other-players-answers"></div>
+       <h1>20 Questions</h1>
+       <h5 id="game-category">The Game Category Should Be Displayed Here</h5>
+       <h6>Number of questions left: <span id="num-questions">20</span></h6>
+       <textarea>Enter your notes here</textarea>
+     </div>
     <div id="waiting-for-host" style="display: none;"><h3>Waiting for host to start the game</h3></div>
   </div>
 

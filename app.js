@@ -26,35 +26,20 @@ const playerList = document.getElementById("player-list");
 const waitingScreen = document.getElementById("waiting-for-host");
 
 let gameCode = "";
-const questions = [
-  { q: "What color is the sky?", a: ["Blue", "Green", "Red"] },
-  { q: "What is 2+2?", a: ["3", "4", "5"] },
-];
 
 function generateGameCode() {
   return Math.random().toString(36).substr(2, 4).toUpperCase();
 }
 
 function startGame() {
-  gameStarted = true;
-  document.getElementById("scoreboard").style.display = "none";
-  let index = 0;
-  function nextQuestion() {
-    if (index < questions.length) {
-      db.ref(`games/${gameCode}/currentQuestion`).set(index);
+     gameStarted = true;
+     // Set gameStarted to true in Firebase
+     db.ref(`games/${gameCode}`).update({ gameStarted: true });
 
-      // Wait 10s for answering + 2s for showing correct answer
-      setTimeout(() => {
-        index++;
-        nextQuestion();
-      }, 12000); // 10s answer + 2s pause to show correct answer
-    } else {
-      // Game over
-      db.ref(`games/${gameCode}/currentQuestion`).set(null);
-    }
-  }
-
-  nextQuestion();
+   if(isHost){
+       document.getElementById("choose-topic").style.display = "block";
+       document.getElementById("host-start-screen").style.display = "none";
+   }
 }
 
 
@@ -70,6 +55,11 @@ function newGame() {
     value: joinUrl,
     size: 200
   });
+    // Set up the game in Firebase with the gameStarted flag
+    db.ref(`games/${gameCode}`).set({
+      gameStarted: false,  // Initialize gameStarted to false
+      players: {}
+    });
 
   db.ref(`games/${gameCode}/players`).on('value', snapshot => {
     const players = snapshot.val() || {};
@@ -81,20 +71,6 @@ function newGame() {
     }
   });
 
-  // Listen for question updates on the host screen too
-  db.ref(`games/${gameCode}/currentQuestion`).on('value', snapshot => {
-    const index = snapshot.val();
-    if (index !== null) {
-      showQuestion(index);
-    } else if (gameStarted) {
-      // Game is over, show final scores on host and hide timer and question
-      document.getElementById("host-question-area").style.display = "none";
-      document.getElementById("player-question-area").style.display = "none";
-      document.getElementById("timer-container").style.display = "none";
-      document.getElementById("host-timer-container").style.display = "none";
-      showScores();
-    }
-  });
 }
 
 function joinGame() {
@@ -113,140 +89,17 @@ function joinGame() {
   playerScreen.classList.add("active");
   waitingScreen.style.display = "block";
 
-  // Only show question when currentQuestion is triggered
-  db.ref(`games/${gameCode}/currentQuestion`).on('value', snapshot => {
-    const index = snapshot.val();
-    if (index !== null){
-      waitingScreen.style.display = "none"; // Hides waiting screen for players
-      showQuestion(index);
+  // Listen for gameStarted state from Firebase
+  db.ref(`games/${gameCode}`).on('value', snapshot => {
+    const gameData = snapshot.val() || {};
+    if (gameData.gameStarted) {
+      // Once gameStarted is true, the player can start seeing questions
+      document.getElementById("player-question-area").style.display = "block";
+      document.getElementById("waiting-for-host").style.display = "none";
     }
   });
+
 }
-
-function showQuestion(index) {
-  const q = questions[index];
- 
-  if (!q) {
-    // Hide question UI
-    document.getElementById("host-question-area").style.display = "none";
-    document.getElementById("player-question-area").style.display = "none";
-    document.getElementById("timer-container").style.display = "none";
-    document.getElementById("host-timer-container").style.display = "none";
-    // Show leaderboard
-    showScores();
-    return;
-  }
-  document.getElementById("host-question-area").style.display = "block";
-  document.getElementById("player-question-area").style.display = "block";
-  
-  // Host: show question and answers 
-  let hostHtml = `<h2>${q.q}</h2>`;
-  hostHtml += q.a.map(ans => `<button class="answer-btn" disabled>${ans}</button>`).join("<br>");
-  document.getElementById("host-question-area").innerHTML = hostHtml;
-
-  hostStartScreen.style.display = "none";
-
-  // Player: show question + answer buttons
-  let html = `<h2>${q.q}</h2>`;
-  html += q.a.map(ans => `<button class="answer-btn" onclick='selectAnswer(this, ${index}, "${ans}")'>${ans}</button>`).join("<br>");
-  document.getElementById("player-question-area").innerHTML = html;
-
-  // Show timer UI for host and player
-  document.getElementById("timer-container").style.display = "block";
-  document.getElementById("host-timer-container").style.display = "block";
-
-  let timeLeft = 10;
-  const timeDisplay = document.getElementById("time-left");
-  const fill = document.getElementById("player-progress-fill");
-  const hostTimeDisplay = document.getElementById("host-time-left");
-  const hostFill = document.getElementById("host-progress-fill");
-
-  timeDisplay.textContent = timeLeft;
-  fill.style.width = "100%";
-  hostTimeDisplay.textContent = timeLeft;
-  hostFill.style.width = "100%";
-
-  const countdown = setInterval(() => {
-    timeLeft--;
-    timeDisplay.textContent = timeLeft;
-    fill.style.width = (timeLeft * 10) + "%";
-    hostTimeDisplay.textContent = timeLeft;
-    hostFill.style.width = (timeLeft * 10) + "%";
-    if (timeLeft <= 0) {
-      clearInterval(countdown);
-    
-      const correctAnswer = questions[index].a[1]; // adjust if this assumption changes
-      console.log("Correct answer is:", correctAnswer);
-    
-      // Host: highlight
-      document.querySelectorAll("#host-question-area button").forEach(btn => {
-        if (btn.textContent.trim() === correctAnswer) {
-          btn.classList.add("correct");
-        }
-      });
-    
-      // Player: highlight
-      document.querySelectorAll("#player-question-area .answer-btn").forEach(btn => {
-        if (btn.textContent.trim() === correctAnswer) {
-          btn.classList.add("correct");
-        }
-      });
-    }
-
-  }, 1000);
-}
-
-function selectAnswer(button, index, selectedAnswer) {
-  // Remove highlight from any previously selected button
-  const buttons = document.querySelectorAll("#player-question-area .answer-btn");
-  buttons.forEach(btn => btn.classList.remove("selected"));
-
-  // Highlight the clicked one
-  button.classList.add("selected");
-
-  // Send answer to database
-  answerQuestion(index, selectedAnswer);
-}
-
-
-function answerQuestion(index, selectedAnswer) {
-  const correctAnswer = questions[index].a[1]; // assuming index 1 is always the correct answer
-
-  if (selectedAnswer === correctAnswer) {
-    const playersRef = db.ref(`games/${gameCode}/players`);
-    playersRef.once('value', snapshot => {
-      const players = snapshot.val();
-      const playerKey = Object.keys(players).find(key => players[key].name === playerNameInput.value);
-
-      if (playerKey) {
-        const currentScore = players[playerKey].score || 0;
-        playersRef.child(playerKey).update({ score: currentScore + 1 });
-      }
-    });
-  }
-
-  console.log("Answered question", index);
-}
-
-function showScores() {
-  setTimeout(() => {
-    db.ref(`games/${gameCode}/players`).once('value', snapshot => {
-      const players = snapshot.val() || {};
-
-      const sortedPlayers = Object.values(players).sort((a, b) => (b.score || 0) - (a.score || 0));
-
-      const html = sortedPlayers.map((p, i) => 
-        `<p><strong>#${i + 1} ${p.name}</strong>: ${p.score || 0} point${p.score === 1 ? '' : 's'}</p>`
-      ).join('');
-
-      document.getElementById("score-list").innerHTML = html;
-      document.getElementById("scoreboard").style.display = "block";
-    });
-  }, 1000); // wait 1s before showing scores
-}
-
-
-
 
 // Auto-join via ?join=CODE
 window.addEventListener("load", () => {
