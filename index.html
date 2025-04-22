@@ -69,7 +69,7 @@
 <body>
   <div id="host-screen" class="screen active">
     <div id="host-start-screen" class="screen active">
-      <h1>Host Quiz Game</h1>
+      <h1>20 Questions</h1>
       <button onclick="newGame()">New Game</button>
       <div id="game-code"></div>
       <canvas id="qr-code"></canvas>
@@ -78,20 +78,22 @@
       </div>
       <div id="player-list"></div>
     </div>
-    <div id="host-question-area">
+    <div id="host-question-area" style="display:none;">
       <div id="choose-topic" style="display:none;">
-        <h1>20 Questions</h1>
         <h5>Select the category</h5>
         <ul>
-          <li>South Park</li>
-          <li>Friends</li>
-          <li>Harry Potter</li>
-          <li>Horror Films</li>
-          <li>Horror Baddies</li>
-          <li>Disney Films</li>
-          <li>Disney Characters</li>
+          <li id="south-park" class="topic-choice" onclick="chooseTopic('south-park')">South Park</li>
+          <li>Friends (Coming soon...)</li>
+          <li>Harry Potter (Coming soon...)</li>
+          <li>Horror Films (Coming soon...)</li>
+          <li>Horror Baddies (Coming soon...)</li>
+          <li>Disney Films (Coming soon...)</li>
+          <li>Disney Characters (Coming soon...)</li>
         </ul>
     </div>
+      <div id="game-area" style="display:none;">
+        <h5>Category: <span id="chosen-category"></span></h5>
+      </div>
 
   </div>
 

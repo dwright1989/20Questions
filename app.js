@@ -32,11 +32,8 @@ function generateGameCode() {
 }
 
 function startGame() {
-     gameStarted = true;
-     // Set gameStarted to true in Firebase
-     db.ref(`games/${gameCode}`).update({ gameStarted: true });
-
    if(isHost){
+       document.getElementById("host-question-area").style.display = "block";
        document.getElementById("choose-topic").style.display = "block";
        document.getElementById("host-start-screen").style.display = "none";
    }
@@ -99,6 +96,21 @@ function joinGame() {
     }
   });
 
+}
+
+function chooseTopic(topic){
+    gameStarted = true;
+     // Set gameStarted to true in Firebase
+     db.ref(`games/${gameCode}`).update({ gameStarted: true });
+    let topicTitle;
+    if(topic=="south-park"){
+        topicTitle = "South Park";
+    }
+    console.log("topic title: " + topicTitle);
+    document.getElementById("choose-topic").style.display = "none";
+    document.getElementById("game-area").style.display = "block";
+    document.getElementById("chosen-category").style.display = "block";
+    document.getElementById("chosen-category").innerHTML = topicTitle;
 }
 
 // Auto-join via ?join=CODE
