@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Firebase Upload Test</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+</head>
+<body>
+<h1>Uploading characters to Firebase...</h1>
+<script>
+   const firebaseConfig = {
+  apiKey: "AIzaSyBIx9m2RspAUHiMtINd96VQdWaprH-8m24",
+  authDomain: "quizapp-765f0.firebaseapp.com",
+  databaseURL: "https://quizapp-765f0-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "quizapp-765f0",
+  storageBucket: "quizapp-765f0.appspot.com",
+  messagingSenderId: "454149464659",
+  appId: "1:454149464659:web:3e776c432ac2b4cb615ca6",
+  measurementId: "G-4MKJ7T5YTQ"
+};
+
+ firebase.initializeApp(firebaseConfig);
+
+const characterData = {
+  southPark: {
+    ericCartman: {
+      name: "Eric Cartman",
+      image: "https://images.paramount.tech/path/mgid:file:gsp:entertainment-assets:/sps/shared/characters/kids/eric-cartman.png"
+    },
+    kyleBroflovski: {
+      name: "Kyle Broflovski",
+      image: "https://images.paramount.tech/path/mgid:file:gsp:entertainment-assets:/sps/shared/characters/kids/kyle-broflovski.png"
+    },
+    stanMarsh: {
+      name: "Stan Marsh",
+      image: "https://images.paramount.tech/path/mgid:file:gsp:entertainment-assets:/sps/shared/characters/kids/stan-marsh.png"
+    },
+    kennyMccormick: {
+      name: "Kenny McCormick",
+      image: "https://images.paramount.tech/path/mgid:file:gsp:entertainment-assets:/sps/shared/characters/kids/kenny-mccormick.png"
+    }
+  },
+  friends: {
+  }
+};
+
+firebase.database().ref('characters').set(characterData)
+  .then(() => console.log("Characters with images uploaded!"))
+  .catch(error => console.error("Upload failed:", error));
+
+
+  </script>
+</body>
+</html>

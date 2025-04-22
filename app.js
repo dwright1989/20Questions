@@ -111,6 +111,12 @@ function chooseTopic(topic){
     document.getElementById("game-area").style.display = "block";
     document.getElementById("chosen-category").style.display = "block";
     document.getElementById("chosen-category").innerHTML = topicTitle;
+
+    assignPlayerCharacters(topic);
+}
+
+function assignPlayerCharacters(topic){
+
 }
 
 // Auto-join via ?join=CODE
