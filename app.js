@@ -103,7 +103,7 @@ function chooseTopic(topic){
      // Set gameStarted to true in Firebase
      db.ref(`games/${gameCode}`).update({ gameStarted: true });
     let topicTitle;
-    if(topic=="south-park"){
+    if(topic=="southPark"){
         topicTitle = "South Park";
     }
     console.log("topic title: " + topicTitle);
@@ -115,9 +115,37 @@ function chooseTopic(topic){
     assignPlayerCharacters(topic);
 }
 
-function assignPlayerCharacters(topic){
+function assignPlayerCharacters(topic) {
+  const charactersRef = firebase.database().ref('characters/' + topic);
+  const playersRef = firebase.database().ref(`games/${gameCode}/players`);
 
+  Promise.all([
+    charactersRef.once('value'),
+    playersRef.once('value')
+  ]).then(([charSnap, playerSnap]) => {
+    const characters = Object.values(charSnap.val() || {});
+    const players = playerSnap.val() || {};
+
+    // Shuffle characters
+    const shuffled = characters.sort(() => 0.5 - Math.random());
+
+    const updates = {};
+    let i = 0;
+    for (const playerId in players) {
+      const character = shuffled[i % shuffled.length]; // Wrap around if not enough characters
+      updates[playerId + '/character'] = character;
+      i++;
+    }
+
+    // Update players in Firebase with their assigned characters
+    return playersRef.update(updates);
+  }).then(() => {
+    console.log("Characters assigned to players.");
+  }).catch(error => {
+    console.error("Error assigning characters:", error);
+  });
 }
+
 
 // Auto-join via ?join=CODE
 window.addEventListener("load", () => {
