@@ -14,6 +14,7 @@ firebase.initializeApp(firebaseConfig);
 let isHost = false;
 let gameStarted = false;
 const db = firebase.database();
+const auth = firebase.auth();
 
 const hostScreen = document.getElementById("host-screen");
 const hostStartScreen = document.getElementById("host-start-screen");
@@ -58,6 +59,7 @@ function newGame() {
       players: {}
     });
 
+
   db.ref(`games/${gameCode}/players`).on('value', snapshot => {
     const players = snapshot.val() || {};
     playerList.innerHTML = `<h3>Players Joined:</h3>` +
@@ -73,30 +75,78 @@ function newGame() {
 function joinGame() {
   const code = codeInput.value.trim().toUpperCase();
   const name = playerNameInput.value.trim();
+
   if (!name) return alert("Please enter your name");
 
-  db.ref(`games/${code}/players`).push({
-    name: name,
-    score: 0
-  });
-  joinArea.style.display = "none";
+  // Use Firebase Authentication to sign in or create a user
+  auth.signInAnonymously()
+    .then(() => {
+      const user = auth.currentUser; // Get current authenticated user
+      const playerName = user.displayName || name; // Set the player name
 
-  gameCode = code;
-  hostScreen.classList.remove("active");
-  playerScreen.classList.add("active");
-  waitingScreen.style.display = "block";
+        const playerRef = db.ref(`games/${code}/players`).push();
+        playerRef.set({
+          name: playerName,
+          score: 0,
+          character: {}
+        });
 
-  // Listen for gameStarted state from Firebase
-  db.ref(`games/${gameCode}`).on('value', snapshot => {
-    const gameData = snapshot.val() || {};
-    if (gameData.gameStarted) {
-      // Once gameStarted is true, the player can start seeing questions
-      document.getElementById("player-question-area").style.display = "block";
-      document.getElementById("waiting-for-host").style.display = "none";
-    }
-  });
+        // Save the key for later use
+        localStorage.setItem("playerId", playerRef.key);
+        localStorage.setItem("gameCode", code); // just in case
 
+
+      joinArea.style.display = "none";
+      hostScreen.classList.remove("active");
+      playerScreen.classList.add("active");
+      waitingScreen.style.display = "block";
+
+      // Listen for gameStarted state from Firebase
+      db.ref(`games/${code}`).on('value', snapshot => {
+        const gameData = snapshot.val() || {};
+        if (gameData.gameStarted) {
+          document.getElementById("player-question-area").style.display = "block";
+          document.getElementById("waiting-for-host").style.display = "none";
+        }
+      });
+    })
+    .catch(error => {
+      console.error("Error signing in anonymously:", error);
+    });
+    // Call this function after a player joins
+    updatePlayerList(code);
 }
+
+
+
+function showOtherPlayersCharacters() {
+
+  const playersRef = firebase.database().ref(`games/${gameCode}/players`);
+    const currentPlayerId = localStorage.getItem("playerId");
+  playersRef.on('value', snapshot => {
+    const players = snapshot.val() || {};
+    let otherPlayersHtml = "<h3>Other Players' Characters:</h3>";
+
+    // Loop through the players and display the characters of others (exclude the current player)
+    Object.keys(players).forEach(playerId => {
+      const player = players[playerId];
+     if (playerId !== currentPlayerId) {  // Skip showing the current player's character
+        otherPlayersHtml += `
+          <div class="player">
+            <p><strong>${player.name}</strong></p>
+            <img src="${player.character.image}" alt="${player.character.name}" style="width: 100px; height: 100px;"/>
+            <p>${player.character.name}</p>
+          </div>
+        `;
+      }
+    });
+
+    // Add the other players' characters to the screen
+    document.getElementById("other-players-answers").innerHTML = otherPlayersHtml;
+  });
+}
+
+
 
 function chooseTopic(topic){
     gameStarted = true;
@@ -116,35 +166,75 @@ function chooseTopic(topic){
 }
 
 function assignPlayerCharacters(topic) {
-  const charactersRef = firebase.database().ref('characters/' + topic);
-  const playersRef = firebase.database().ref(`games/${gameCode}/players`);
+  const gameCode = localStorage.getItem("gameCode");
 
-  Promise.all([
-    charactersRef.once('value'),
-    playersRef.once('value')
-  ]).then(([charSnap, playerSnap]) => {
-    const characters = Object.values(charSnap.val() || {});
-    const players = playerSnap.val() || {};
+  if (!gameCode) {
+    console.error("Missing gameCode");
+    return;
+  }
 
-    // Shuffle characters
-    const shuffled = characters.sort(() => 0.5 - Math.random());
+  // Fetch characters from Firebase
+  firebase.database().ref(`characters/${topic}`).once('value')
+    .then(snapshot => {
+      const characters = snapshot.val();
+      if (!characters) {
+        throw new Error("No characters found for topic: " + topic);
+      }
 
-    const updates = {};
-    let i = 0;
-    for (const playerId in players) {
-      const character = shuffled[i % shuffled.length]; // Wrap around if not enough characters
-      updates[playerId + '/character'] = character;
-      i++;
+      const characterArray = Object.values(characters);
+      const usedIndexes = new Set(); // To prevent duplicates
+
+      // Fetch all players
+      return db.ref(`games/${gameCode}/players`).once('value').then(playerSnap => {
+        const players = playerSnap.val() || {};
+        const updates = {};
+
+        Object.keys(players).forEach(playerId => {
+          let randomIndex;
+          do {
+            randomIndex = Math.floor(Math.random() * characterArray.length);
+          } while (usedIndexes.has(randomIndex) && usedIndexes.size < characterArray.length);
+
+          usedIndexes.add(randomIndex);
+          const character = characterArray[randomIndex];
+
+          updates[`games/${gameCode}/players/${playerId}/character`] = {
+            name: character.name,
+            image: character.image
+          };
+        });
+
+        // Apply all character assignments at once
+        return db.ref().update(updates);
+      });
+    })
+    .then(() => {
+      console.log("Characters assigned to all players.");
+      showOtherPlayersCharacters();
+    })
+    .catch(error => {
+      console.error("Error assigning characters:", error);
+    });
+}
+
+
+
+function updatePlayerList(code) {
+console.log("Game Code:", code); // Ensure the gameCode is correct here
+  db.ref(`games/${code}/players`).once('value', snapshot => {
+    const players = snapshot.val() || {};
+    playerList.innerHTML = `<h3>Players Joined:</h3>` +
+      Object.values(players).map(player => `<p>${player.name}</p>`).join('');
+
+    if (Object.keys(players).length > 0) {
+      document.getElementById("start-game-container").style.display = "block";
+    } else {
+      document.getElementById("start-game-container").style.display = "none";
     }
-
-    // Update players in Firebase with their assigned characters
-    return playersRef.update(updates);
-  }).then(() => {
-    console.log("Characters assigned to players.");
-  }).catch(error => {
-    console.error("Error assigning characters:", error);
   });
 }
+
+
 
 
 // Auto-join via ?join=CODE
