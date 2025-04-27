@@ -71,7 +71,6 @@ function newGame() {
   });
 
 }
-
 function joinGame() {
   const code = codeInput.value.trim().toUpperCase();
   const name = playerNameInput.value.trim();
@@ -84,17 +83,16 @@ function joinGame() {
       const user = auth.currentUser; // Get current authenticated user
       const playerName = user.displayName || name; // Set the player name
 
-        const playerRef = db.ref(`games/${code}/players`).push();
-        playerRef.set({
-          name: playerName,
-          score: 0,
-          character: {}
-        });
+      const playerRef = db.ref(`games/${code}/players`).push();
+      playerRef.set({
+        name: playerName,
+        score: 0,
+        character: {}
+      });
 
-        // Save the key for later use
-        localStorage.setItem("playerId", playerRef.key);
-        localStorage.setItem("gameCode", code); // just in case
-
+      // Save the key for later use
+      localStorage.setItem("playerId", playerRef.key);
+      localStorage.setItem("gameCode", code); // just in case
 
       joinArea.style.display = "none";
       hostScreen.classList.remove("active");
@@ -105,14 +103,18 @@ function joinGame() {
       db.ref(`games/${code}`).on('value', snapshot => {
         const gameData = snapshot.val() || {};
         if (gameData.gameStarted) {
+          console.log("game started");
           document.getElementById("player-question-area").style.display = "block";
           document.getElementById("waiting-for-host").style.display = "none";
+          const topic = gameData.topic || "Unknown"; // Default to "Unknown" if no topic is set
+          document.getElementById("game-category").innerHTML = topic;
         }
       });
     })
     .catch(error => {
       console.error("Error signing in anonymously:", error);
     });
+
     // Call this function after a player joins
     updatePlayerList(code);
 }
@@ -120,38 +122,50 @@ function joinGame() {
 
 
 function showOtherPlayersCharacters() {
-
-  const playersRef = firebase.database().ref(`games/${gameCode}/players`);
+    console.log("In showOtherPlayersCharacters");
+    const playersRef = firebase.database().ref(`games/${gameCode}/players`);
     const currentPlayerId = localStorage.getItem("playerId");
-  playersRef.on('value', snapshot => {
-    const players = snapshot.val() || {};
-    let otherPlayersHtml = "<h3>Other Players' Characters:</h3>";
 
-    // Loop through the players and display the characters of others (exclude the current player)
-    Object.keys(players).forEach(playerId => {
-      const player = players[playerId];
-     if (playerId !== currentPlayerId) {  // Skip showing the current player's character
-        otherPlayersHtml += `
-          <div class="player">
-            <p><strong>${player.name}</strong></p>
-            <img src="${player.character.image}" alt="${player.character.name}" style="width: 100px; height: 100px;"/>
-            <p>${player.character.name}</p>
-          </div>
-        `;
-      }
+    playersRef.on('value', snapshot => {
+        const players = snapshot.val() || {};
+        let otherPlayersHtml = "<h3>Other Players' Characters:</h3>";
+
+        console.log("Players data: ", players);  // Debugging player data
+
+        Object.keys(players).forEach(playerId => {
+            const player = players[playerId];
+            if (playerId !== currentPlayerId) {  // Skip showing the current player's character
+                otherPlayersHtml += `
+                  <div class="player">
+                    <p><strong>${player.name}</strong></p>
+                    <img src="${player.character.image}" alt="${player.character.name}" style="width: 100px; height: 100px;"/>
+                    <p>${player.character.name}</p>
+                  </div>
+                `;
+            }
+        });
+
+        console.log("Generated HTML:", otherPlayersHtml);
+
+        // Update the HTML for the player screen
+        const playerScreenContainer = document.getElementById("other-players-answers");
+        if (playerScreenContainer) {
+            playerScreenContainer.innerHTML = otherPlayersHtml;
+        } else {
+            console.error("Error: The element #other-players-answers does not exist on the player screen.");
+        }
     });
-
-    // Add the other players' characters to the screen
-    document.getElementById("other-players-answers").innerHTML = otherPlayersHtml;
-  });
 }
+
+
+
 
 
 
 function chooseTopic(topic){
     gameStarted = true;
      // Set gameStarted to true in Firebase
-     db.ref(`games/${gameCode}`).update({ gameStarted: true });
+     db.ref(`games/${gameCode}`).update({ gameStarted: true, topic: topic });
     let topicTitle;
     if(topic=="southPark"){
         topicTitle = "South Park";
@@ -161,7 +175,6 @@ function chooseTopic(topic){
     document.getElementById("game-area").style.display = "block";
     document.getElementById("chosen-category").style.display = "block";
     document.getElementById("chosen-category").innerHTML = topicTitle;
-
     assignPlayerCharacters(topic);
 }
 
