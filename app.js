@@ -41,6 +41,7 @@ function startGame() {
 }
 
 
+// Function to start a new game (host)
 function newGame() {
   gameStarted = false;
   isHost = true;
@@ -53,12 +54,15 @@ function newGame() {
     value: joinUrl,
     size: 200
   });
-    // Set up the game in Firebase with the gameStarted flag
-    db.ref(`games/${gameCode}`).set({
-      gameStarted: false,  // Initialize gameStarted to false
-      players: {}
-    });
 
+  // Set up the game in Firebase with the gameStarted flag
+  db.ref(`games/${gameCode}`).set({
+    gameStarted: false,  // Initialize gameStarted to false
+    players: {}
+  });
+
+  // Start listening for changes in player list and current turn
+  listenToGameState();
 
   db.ref(`games/${gameCode}/players`).on('value', snapshot => {
     const players = snapshot.val() || {};
@@ -69,8 +73,9 @@ function newGame() {
       document.getElementById("start-game-container").style.display = "block";
     }
   });
-
 }
+
+// Function to join a game
 function joinGame() {
   const code = codeInput.value.trim().toUpperCase();
   const name = playerNameInput.value.trim();
@@ -87,6 +92,7 @@ function joinGame() {
       playerRef.set({
         name: playerName,
         questionsLeft: 20,
+        currentTurn: null,
         character: {}
       });
 
@@ -98,6 +104,9 @@ function joinGame() {
       hostScreen.classList.remove("active");
       playerScreen.classList.add("active");
       waitingScreen.style.display = "block";
+
+      // Start listening for game state changes (start, current turn, etc.)
+      listenToGameState();
 
       // Listen for gameStarted state from Firebase
       db.ref(`games/${code}`).on('value', snapshot => {
@@ -117,8 +126,8 @@ function joinGame() {
       console.error("Error signing in anonymously:", error);
     });
 
-    // Call this function after a player joins
-    updatePlayerList(code);
+  // Call this function after a player joins
+  updatePlayerList(code);
 }
 
 
@@ -170,19 +179,54 @@ function showOtherPlayersCharacters() {
 
 
 
+// Function to start the game
+function chooseTopic(topic) {
+  gameStarted = true;
+  // Set gameStarted to true and the first turn to the first player
+  const playersRef = db.ref(`games/${gameCode}/players`);
 
-function chooseTopic(topic){
-    gameStarted = true;
-     // Set gameStarted to true in Firebase
-     db.ref(`games/${gameCode}`).update({ gameStarted: true, topic: topic });
-    let topicTitle = getTopicName(topic);
-    console.log("topic title: " + topicTitle);
-    document.getElementById("choose-topic").style.display = "none";
-    document.getElementById("game-area").style.display = "block";
-    document.getElementById("chosen-category").style.display = "block";
-    document.getElementById("chosen-category").innerHTML = topicTitle;
-    assignPlayerCharacters(topic);
+  playersRef.once('value', snapshot => {
+    const players = snapshot.val() || {};
+    const firstPlayerId = Object.keys(players)[0]; // First player becomes the first to play
+
+    // Update the currentTurn in Firebase
+    db.ref(`games/${gameCode}`).update({
+      gameStarted: true,
+      topic: topic,
+      currentTurn: firstPlayerId
+    });
+  });
+
+  let topicTitle = getTopicName(topic);
+  document.getElementById("choose-topic").style.display = "none";
+  document.getElementById("game-area").style.display = "block";
+  document.getElementById("chosen-category").style.display = "block";
+  document.getElementById("chosen-category").innerHTML = topicTitle;
+  assignPlayerCharacters(topic);
 }
+
+// Function to move to the next player's turn
+function moveToNextTurn() {
+  const playersRef = db.ref(`games/${gameCode}/players`);
+
+  playersRef.once('value', snapshot => {
+    const players = snapshot.val() || {};
+    const playerIds = Object.keys(players);
+
+    // Get the current turn index
+    let currentTurnIndex = playerIds.indexOf(gameData.currentTurn);
+
+    // Move to the next player, or back to the first player if it’s the last one
+    const nextTurnIndex = (currentTurnIndex + 1) % playerIds.length;
+    const nextTurnPlayerId = playerIds[nextTurnIndex];
+
+    // Update currentTurn in Firebase
+    db.ref(`games/${gameCode}`).update({
+      currentTurn: nextTurnPlayerId
+    });
+  });
+}
+
 
 function assignPlayerCharacters(topic) {
   const gameCode = localStorage.getItem("gameCode");
@@ -266,6 +310,28 @@ function getTopicName(topic){
         return "Unknown";
     }
 }
+
+// Function to listen to changes in the game state
+function listenToGameState() {
+  db.ref(`games/${gameCode}`).on('value', snapshot => {
+    const gameData = snapshot.val() || {};
+    const currentTurnId = gameData.currentTurn;
+
+    // Update the host screen with the player's name whose turn it is
+    if (currentTurnId) {
+      const playersRef = db.ref(`games/${gameCode}/players`);
+      playersRef.once('value', snapshot => {
+        const players = snapshot.val() || {};
+        const currentPlayer = players[currentTurnId];
+
+        // Show current player's turn on the host screen
+        document.getElementById("current-turn").innerHTML = `<h3>It's ${currentPlayer.name}'s turn!</h3>`;
+      });
+    }
+  });
+}
+
+
 
 // Auto-join via ?join=CODE
 window.addEventListener("load", () => {
