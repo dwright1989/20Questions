@@ -350,8 +350,10 @@ console.log("the current turn id is :" + currentTurnId);
            // If it's the current player's turn
             if (currentPlayerId === currentTurnId) {
               document.getElementById("player-turn").innerHTML = `<h3>It's your turn, ${currentPlayer.name}!</h3>`;
+              document.getElementById("end-turn").style.display = "block";
             } else {
               document.getElementById("player-turn").innerHTML = `<h3>It's ${currentPlayer.name}'s turn. Please wait...</h3>`;
+               document.getElementById("end-turn").style.display = "none";
             }
         }
       });
