@@ -108,6 +108,7 @@ function joinGame() {
           document.getElementById("waiting-for-host").style.display = "none";
           const topic = gameData.topic || "Unknown"; // Default to "Unknown" if no topic is set
           document.getElementById("game-category").innerHTML = getTopicName(topic);
+          document.getElementById("current-player-details").innerHTML = playerName;
           showOtherPlayersCharacters();
         }
       });
