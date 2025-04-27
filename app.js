@@ -108,6 +108,7 @@ function joinGame() {
           document.getElementById("waiting-for-host").style.display = "none";
           const topic = gameData.topic || "Unknown"; // Default to "Unknown" if no topic is set
           document.getElementById("game-category").innerHTML = getTopicName(topic);
+          showOtherPlayersCharacters();
         }
       });
     })
@@ -123,8 +124,13 @@ function joinGame() {
 
 function showOtherPlayersCharacters() {
     console.log("In showOtherPlayersCharacters");
+
+    const gameCode = localStorage.getItem("gameCode");  // Ensure gameCode is retrieved properly
+    console.log("Game Code:", gameCode);  // Check if gameCode is set correctly
     const playersRef = firebase.database().ref(`games/${gameCode}/players`);
     const currentPlayerId = localStorage.getItem("playerId");
+
+    console.log("playersRef: " + playersRef);
 
     playersRef.on('value', snapshot => {
         const players = snapshot.val() || {};
@@ -132,6 +138,7 @@ function showOtherPlayersCharacters() {
 
         console.log("Players data: ", players);  // Debugging player data
 
+        // Loop through the players and generate HTML for other players (excluding the current player)
         Object.keys(players).forEach(playerId => {
             const player = players[playerId];
             if (playerId !== currentPlayerId) {  // Skip showing the current player's character
@@ -156,6 +163,7 @@ function showOtherPlayersCharacters() {
         }
     });
 }
+
 
 
 
