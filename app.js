@@ -62,6 +62,7 @@ function newGame() {
   });
 
   // Start listening for changes in player list and current turn
+  console.log("about to listen to game state change from new game");
   listenToGameState();
 
   db.ref(`games/${gameCode}/players`).on('value', snapshot => {
@@ -105,9 +106,7 @@ function joinGame() {
       playerScreen.classList.add("active");
       waitingScreen.style.display = "block";
 
-      // Start listening for game state changes (start, current turn, etc.)
-      listenToGameState();
-
+      let hasStartedListening = false;
       // Listen for gameStarted state from Firebase
       db.ref(`games/${code}`).on('value', snapshot => {
         const gameData = snapshot.val() || {};
@@ -119,7 +118,16 @@ function joinGame() {
           document.getElementById("game-category").innerHTML = getTopicName(topic);
           document.getElementById("current-player-details").innerHTML = playerName;
           showOtherPlayersCharacters();
-        }
+          console.log("about to listen to game state change from join game");
+
+
+        // Only listen once!
+            if (!hasStartedListening) {
+              console.log("Player is now listening to game state changes");
+              listenToGameState();
+              hasStartedListening = true;
+            }
+            }
       });
     })
     .catch(error => {
@@ -203,6 +211,7 @@ function chooseTopic(topic) {
   document.getElementById("chosen-category").style.display = "block";
   document.getElementById("chosen-category").innerHTML = topicTitle;
   assignPlayerCharacters(topic);
+  listenToGameState();
 }
 
 // Function to move to the next player's turn
@@ -313,23 +322,53 @@ function getTopicName(topic){
 
 // Function to listen to changes in the game state
 function listenToGameState() {
+const currentPlayerId = localStorage.getItem("playerId"); // Get the current player's ID
+const gameCode = localStorage.getItem("gameCode");
+
   db.ref(`games/${gameCode}`).on('value', snapshot => {
     const gameData = snapshot.val() || {};
     const currentTurnId = gameData.currentTurn;
-
-    // Update the host screen with the player's name whose turn it is
+    const gameStarted = gameData.gameStarted;
+console.log("the current turn id is :" + currentTurnId);
     if (currentTurnId) {
+      // Get player data to know whose turn it is
       const playersRef = db.ref(`games/${gameCode}/players`);
+
       playersRef.once('value', snapshot => {
         const players = snapshot.val() || {};
         const currentPlayer = players[currentTurnId];
 
-        // Show current player's turn on the host screen
-        document.getElementById("current-turn").innerHTML = `<h3>It's ${currentPlayer.name}'s turn!</h3>`;
+       // Update the host screen with the correct player's name whose turn it is
+       if (hostScreen.classList.contains("active")) {
+         if (currentPlayer) {
+           document.getElementById("current-turn").innerHTML = `<h3>It's ${currentPlayer.name}'s turn!</h3>`;
+         }
+       }
+
+        // Update the player screen with whose turn it is
+        if (playerScreen.classList.contains("active")) {
+           // If it's the current player's turn
+            if (currentPlayerId === currentTurnId) {
+              document.getElementById("player-turn").innerHTML = `<h3>It's your turn, ${currentPlayer.name}!</h3>`;
+            } else {
+              document.getElementById("player-turn").innerHTML = `<h3>It's ${currentPlayer.name}'s turn. Please wait...</h3>`;
+            }
+        }
       });
+    }
+
+    // You can also check if the game has started and update UI elements accordingly on the player screen
+    if (gameStarted) {
+      if (playerScreen.classList.contains("active")) {
+        // Show the game started UI on the player side
+        document.getElementById("player-question-area").style.display = "block";
+        document.getElementById("waiting-for-host").style.display = "none";
+      }
     }
   });
 }
+
+
 
 
 
