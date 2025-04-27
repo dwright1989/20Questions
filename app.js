@@ -107,7 +107,7 @@ function joinGame() {
           document.getElementById("player-question-area").style.display = "block";
           document.getElementById("waiting-for-host").style.display = "none";
           const topic = gameData.topic || "Unknown"; // Default to "Unknown" if no topic is set
-          document.getElementById("game-category").innerHTML = topic;
+          document.getElementById("game-category").innerHTML = getTopicName(topic);
         }
       });
     })
@@ -166,10 +166,7 @@ function chooseTopic(topic){
     gameStarted = true;
      // Set gameStarted to true in Firebase
      db.ref(`games/${gameCode}`).update({ gameStarted: true, topic: topic });
-    let topicTitle;
-    if(topic=="southPark"){
-        topicTitle = "South Park";
-    }
+    let topicTitle = getTopicName(topic);
     console.log("topic title: " + topicTitle);
     document.getElementById("choose-topic").style.display = "none";
     document.getElementById("game-area").style.display = "block";
@@ -248,7 +245,18 @@ console.log("Game Code:", code); // Ensure the gameCode is correct here
 }
 
 
-
+function getTopicName(topic){
+    switch(topic) {
+      case "southPark":
+        return "South Park";
+        break;
+      case "friends":
+        return "Friends";
+        break;
+      default:
+        return "Unknown";
+    }
+}
 
 // Auto-join via ?join=CODE
 window.addEventListener("load", () => {
