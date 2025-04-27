@@ -86,7 +86,7 @@ function joinGame() {
       const playerRef = db.ref(`games/${code}/players`).push();
       playerRef.set({
         name: playerName,
-        score: 0,
+        questionsLeft: 20,
         character: {}
       });
 
