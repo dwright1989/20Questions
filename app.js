@@ -310,6 +310,7 @@ function listenToGameState() {
   const playersRef = db.ref(`games/${gameCode}/players`);
   const guessesRef = db.ref(`games/${gameCode}/guesses`);
 
+
   // Listen to game state
   gameRef.on('value', snapshot => {
     const gameData = snapshot.val() || {};
@@ -447,6 +448,7 @@ function guessAnswer(){
   const playersRef = db.ref(`games/${gameCode}/players`);
   const gameRef = db.ref(`games/${gameCode}`);
 
+
   // Show a form for the player to submit their guess
   const guessFormHtml = `
     <h3>Your Guess</h3>
@@ -466,7 +468,9 @@ function guessAnswer(){
     // Save the guess to Firebase
     const currentPlayerId = localStorage.getItem("playerId");
     const guessRef = db.ref(`games/${gameCode}/guesses`).push();
+    const guessId = guessRef.key; // get the auto-generated ID
     guessRef.set({
+      id: guessId,
       playerId: currentPlayerId,
       guess: guess,
       timeSubmitted: firebase.database.ServerValue.TIMESTAMP
@@ -486,46 +490,43 @@ function guessAnswer(){
 }
 
 
-// Update the host screen with voting options
 function displayGuessForVoting(guessData) {
-  let playerGuessName = "";
-   const playerId = localStorage.getItem("playerId");
-   getPlayerNameFromId(playerId, (playerName) => {
-       if (playerName) {
-       playerGuessName = playerName;
-         console.log("Found player:", playerName);
-       } else {
-         console.log("No player found.");
-       }
-    });
+  const guesserPlayerId = guessData.playerId; // <-- use the guesser's ID
 
-  console.log("player Guess name " + playerGuessName);
-  const guessHtml = `
-    <h3>Guess by Player ${playerGuessName}</h3>
-    <p>${guessData.guess}</p>
-    <button class="vote" data-vote="correct" data-guess-id="${guessData.id}">Correct</button>
-    <button class="vote" data-vote="incorrect" data-guess-id="${guessData.id}">Incorrect</button>
-  `;
-  document.getElementById("host-guess-area").innerHTML = guessHtml;
+  getPlayerNameFromId(guesserPlayerId, (playerName) => {
+    let playerGuessName = playerName || "Unknown";
 
-  // Add event listeners for voting buttons
-  const voteButtons = document.querySelectorAll(".vote");
-  voteButtons.forEach(button => {
-    button.addEventListener("click", (event) => {
-      const vote = event.target.dataset.vote;
-      const guessId = event.target.dataset.guessId;
+    const guessHtml = `
+      <h3>Guess by ${playerGuessName}</h3>
+      <p>${guessData.guess}</p>
+      <button class="vote" data-vote="correct" data-guess-id="${guessData.id}">Correct</button>
+      <button class="vote" data-vote="incorrect" data-guess-id="${guessData.id}">Incorrect</button>
+    `;
+    document.getElementById("host-guess-area").innerHTML = guessHtml;
 
-      // Save the vote to Firebase
-      const voteRef = db.ref(`games/${gameCode}/guesses/${guessId}/votes`).push();
-      voteRef.set({
-        playerId: currentPlayerId,
-        vote: vote
+    // Add event listeners for voting buttons
+    const voteButtons = document.querySelectorAll(".vote");
+    voteButtons.forEach(button => {
+      button.addEventListener("click", (event) => {
+        const vote = event.target.dataset.vote;
+        const guessId = event.target.dataset.guessId;
+        const gameCode = localStorage.getItem("gameCode");  // <-- get again
+        const currentPlayerId = localStorage.getItem("playerId"); // <-- get again
+
+        // Save the vote to Firebase
+        const voteRef = db.ref(`games/${gameCode}/guesses/${guessId}/votes`).push();
+        voteRef.set({
+          playerId: currentPlayerId,
+          vote: vote
+        });
+
+        // Optionally, disable buttons after voting
+        voteButtons.forEach(btn => btn.disabled = true);
       });
-
-      // Optionally, update the UI to reflect the vote
     });
   });
 }
+
 
 function getPlayerNameFromId(playerId, callback) {
    const gameCode = localStorage.getItem("gameCode");
