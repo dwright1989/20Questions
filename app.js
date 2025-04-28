@@ -61,6 +61,8 @@ function newGame() {
     players: {}
   });
 
+  db.ref(`games/${gameCode}/guesses`).remove();
+
   // Start listening for changes in player list and current turn
   console.log("about to listen to game state change from new game");
   listenToGameState();
@@ -504,28 +506,45 @@ function displayGuessForVoting(guessData) {
     `;
     document.getElementById("host-guess-area").innerHTML = guessHtml;
 
-    // Add event listeners for voting buttons
     const voteButtons = document.querySelectorAll(".vote");
     voteButtons.forEach(button => {
       button.addEventListener("click", (event) => {
         const vote = event.target.dataset.vote;
         const guessId = event.target.dataset.guessId;
-        const gameCode = localStorage.getItem("gameCode");  // <-- get again
-        const currentPlayerId = localStorage.getItem("playerId"); // <-- get again
+        const gameCode = localStorage.getItem("gameCode");
 
-        // Save the vote to Firebase
-        const voteRef = db.ref(`games/${gameCode}/guesses/${guessId}/votes`).push();
-        voteRef.set({
-          playerId: currentPlayerId,
-          vote: vote
-        });
+        // Save the host's vote directly under the guess
+        db.ref(`games/${gameCode}/guesses/${guessId}/vote`).set(vote)
+          .then(() => {
+            // Clear the guess area
+            document.getElementById("host-guess-area").innerHTML = "";
 
-        // Optionally, disable buttons after voting
-        voteButtons.forEach(btn => btn.disabled = true);
+            // Start next turn (you can trigger your next-turn logic here)
+            startNextTurn();
+          })
+          .catch((error) => {
+            console.error("Error saving vote:", error);
+          });
       });
     });
+
+
   });
 }
+
+function startNextTurn() {
+  console.log("Starting next turn...");
+
+  // Example steps:
+  // - Increment a currentPlayerIndex
+  // - Set game state to "waiting for guess"
+  // - Notify next player it's their turn
+  // - Reset timers if you have timers
+
+  // For now, you could just show a simple message:
+  document.getElementById("host-guess-area").innerHTML = "<h3>Next player's turn!</h3>";
+}
+
 
 
 function getPlayerNameFromId(playerId, callback) {
