@@ -358,26 +358,43 @@ function listenToGameState() {
   });
 }
 
-
 function moveToNextTurn() {
-console.log("test move to next turn");
-  const gameCode = localStorage.getItem("gameCode");  // Get the current game code
+  console.log("test move to next turn");
+
+  const gameCode = localStorage.getItem("gameCode");
   const playersRef = db.ref(`games/${gameCode}/players`);
   const gameRef = db.ref(`games/${gameCode}`);
 
   playersRef.once('value', playersSnapshot => {
     const players = playersSnapshot.val() || {};
-    const playerIds = Object.keys(players);  // List of player IDs
+    const playerIds = Object.keys(players);
 
     gameRef.once('value', gameSnapshot => {
       const gameData = gameSnapshot.val() || {};
       const currentTurnId = gameData.currentTurn;
 
+      if (!currentTurnId) {
+        console.error("No current turn found!");
+        return;
+      }
+
+      // 1. Reduce questionsLeft for the player who just finished their turn
+      const currentPlayerRef = db.ref(`games/${gameCode}/players/${currentTurnId}`);
+      currentPlayerRef.once('value', snapshot => {
+        const currentPlayerData = snapshot.val();
+        if (currentPlayerData && currentPlayerData.questionsLeft > 0) {
+          currentPlayerRef.update({
+            questionsLeft: currentPlayerData.questionsLeft - 1
+          });
+          console.log(`Reduced questions left for player ${currentTurnId}`);
+        }
+      });
+
+      // 2. Move to next player's turn
       const currentTurnIndex = playerIds.indexOf(currentTurnId);
       const nextTurnIndex = (currentTurnIndex + 1) % playerIds.length;
       const nextTurnPlayerId = playerIds[nextTurnIndex];
 
-      // Update Firebase with the next player's turn
       gameRef.update({
         currentTurn: nextTurnPlayerId
       });
