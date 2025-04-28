@@ -306,27 +306,26 @@ function listenToGameState() {
   const gameCode = localStorage.getItem("gameCode");
   const currentPlayerId = localStorage.getItem("playerId");
 
-  db.ref(`games/${gameCode}`).on('value', snapshot => {
+  const gameRef = db.ref(`games/${gameCode}`);
+  const playersRef = db.ref(`games/${gameCode}/players`);
+
+  // Listen to game state
+  gameRef.on('value', snapshot => {
     const gameData = snapshot.val() || {};
     const currentTurnId = gameData.currentTurn;
     const gameStarted = gameData.gameStarted;
 
-    // Check whose turn it is
     if (currentTurnId) {
-      const playersRef = db.ref(`games/${gameCode}/players`);
-
       playersRef.once('value', snapshot => {
         const players = snapshot.val() || {};
         const currentPlayer = players[currentTurnId];
 
-        // Update the host screen with the correct player's name whose turn it is
         if (hostScreen.classList.contains("active")) {
           if (currentPlayer) {
             document.getElementById("current-turn").innerHTML = `<h3>It's ${currentPlayer.name}'s turn!</h3>`;
           }
         }
 
-        // Update the player screen with whose turn it is
         if (playerScreen.classList.contains("active")) {
           if (currentPlayerId === currentTurnId) {
             document.getElementById("player-turn").innerHTML = `<h3>It's your turn, ${currentPlayer.name}!</h3>`;
@@ -337,9 +336,8 @@ function listenToGameState() {
                 console.log("End turn button clicked.");
                 moveToNextTurn();
               });
-              endTurnButton.dataset.listenerAdded = true; // So you don't add it multiple times
+              endTurnButton.dataset.listenerAdded = true;
             }
-
           } else {
             document.getElementById("player-turn").innerHTML = `<h3>It's ${currentPlayer.name}'s turn. Please wait...</h3>`;
             document.getElementById("end-turn").style.display = "none";
@@ -348,7 +346,6 @@ function listenToGameState() {
       });
     }
 
-    // Handle other game state changes like gameStarted or topic changes if needed
     if (gameStarted) {
       if (playerScreen.classList.contains("active")) {
         document.getElementById("player-question-area").style.display = "block";
@@ -356,7 +353,30 @@ function listenToGameState() {
       }
     }
   });
+
+  // 🆕 Listen for player questionsLeft changes
+  playersRef.on('value', snapshot => {
+    const players = snapshot.val() || {};
+    updateQuestionsLeftUI(players);
+  });
 }
+
+
+function updateQuestionsLeftUI(players) {
+  const hostQuestionsLeftArea = document.getElementById("host-questions-left");
+  const playerQuestionsLeftArea = document.getElementById("player-questions-left");
+
+  if (hostQuestionsLeftArea) {
+    hostQuestionsLeftArea.innerHTML = "<h3>Questions Left:</h3>" +
+      Object.values(players).map(player => `<p>${player.name}: ${player.questionsLeft} left</p>`).join('');
+  }
+
+  if (playerQuestionsLeftArea) {
+    playerQuestionsLeftArea.innerHTML = "<h3>Questions Left:</h3>" +
+      Object.values(players).map(player => `<p>${player.name}: ${player.questionsLeft} left</p>`).join('');
+  }
+}
+
 
 function moveToNextTurn() {
   console.log("test move to next turn");
