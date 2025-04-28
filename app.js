@@ -308,12 +308,14 @@ function listenToGameState() {
 
   const gameRef = db.ref(`games/${gameCode}`);
   const playersRef = db.ref(`games/${gameCode}/players`);
+  const guessesRef = db.ref(`games/${gameCode}/guesses`);
 
   // Listen to game state
   gameRef.on('value', snapshot => {
     const gameData = snapshot.val() || {};
     const currentTurnId = gameData.currentTurn;
     const gameStarted = gameData.gameStarted;
+
 
     if (currentTurnId) {
       playersRef.once('value', snapshot => {
@@ -323,6 +325,7 @@ function listenToGameState() {
         if (hostScreen.classList.contains("active")) {
           if (currentPlayer) {
             document.getElementById("current-turn").innerHTML = `<h3>It's ${currentPlayer.name}'s turn!</h3>`;
+
           }
         }
 
@@ -330,7 +333,9 @@ function listenToGameState() {
           if (currentPlayerId === currentTurnId) {
             document.getElementById("player-turn").innerHTML = `<h3>It's your turn, ${currentPlayer.name}!</h3>`;
             document.getElementById("end-turn").style.display = "block";
+            document.getElementById("guess-answer").style.display = "block";
             const endTurnButton = document.getElementById("end-turn");
+            const guessAnswerButton = document.getElementById("guess-answer");
             if (endTurnButton && !endTurnButton.dataset.listenerAdded) {
               endTurnButton.addEventListener("click", () => {
                 console.log("End turn button clicked.");
@@ -338,9 +343,17 @@ function listenToGameState() {
               });
               endTurnButton.dataset.listenerAdded = true;
             }
+             if (guessAnswerButton && !guessAnswerButton.dataset.listenerAdded) {
+              guessAnswerButton.addEventListener("click", () => {
+                console.log("Player going to guess the answer.");
+                guessAnswer();
+              });
+              guessAnswerButton.dataset.listenerAdded = true;
+            }
           } else {
             document.getElementById("player-turn").innerHTML = `<h3>It's ${currentPlayer.name}'s turn. Please wait...</h3>`;
             document.getElementById("end-turn").style.display = "none";
+            document.getElementById("guess-answer").style.display = "none";
           }
         }
       });
@@ -352,6 +365,11 @@ function listenToGameState() {
         document.getElementById("waiting-for-host").style.display = "none";
       }
     }
+    // Listen for player guesses and update the host screen
+      guessesRef.on('child_added', snapshot => {
+        const guessData = snapshot.val();
+        displayGuessForVoting(guessData);
+      });
   });
 
   // 🆕 Listen for player questionsLeft changes
@@ -423,6 +441,109 @@ function moveToNextTurn() {
     });
   });
 }
+
+function guessAnswer(){
+  const gameCode = localStorage.getItem("gameCode");
+  const playersRef = db.ref(`games/${gameCode}/players`);
+  const gameRef = db.ref(`games/${gameCode}`);
+
+  // Show a form for the player to submit their guess
+  const guessFormHtml = `
+    <h3>Your Guess</h3>
+    <input type="text" id="guess-input" placeholder="Type your guess...">
+    <button id="submit-guess">Submit Guess</button>
+  `;
+
+  // Show the guess form on the player screen
+  document.getElementById("player-guess-area").innerHTML = guessFormHtml;
+  document.getElementById("player-guess-area").style.display = "block";
+
+  // Listen for the "Submit Guess" button click
+  document.getElementById("submit-guess").addEventListener("click", () => {
+    const guess = document.getElementById("guess-input").value.trim();
+    if (!guess) return alert("Please enter a guess!");
+
+    // Save the guess to Firebase
+    const currentPlayerId = localStorage.getItem("playerId");
+    const guessRef = db.ref(`games/${gameCode}/guesses`).push();
+    guessRef.set({
+      playerId: currentPlayerId,
+      guess: guess,
+      timeSubmitted: firebase.database.ServerValue.TIMESTAMP
+    });
+
+    // Update the host screen with the guess
+    const guessHtml = `
+      <h3>${currentPlayerId}'s Guess</h3>
+      <p>${guess}</p>
+    `;
+
+    document.getElementById("host-guess-area").innerHTML = guessHtml;
+
+    // Hide the guess form after submission
+    document.getElementById("player-guess-area").style.display = "none";
+  });
+}
+
+
+// Update the host screen with voting options
+function displayGuessForVoting(guessData) {
+  let playerGuessName = "";
+   const playerId = localStorage.getItem("playerId");
+   getPlayerNameFromId(playerId, (playerName) => {
+       if (playerName) {
+       playerGuessName = playerName;
+         console.log("Found player:", playerName);
+       } else {
+         console.log("No player found.");
+       }
+    });
+
+  console.log("player Guess name " + playerGuessName);
+  const guessHtml = `
+    <h3>Guess by Player ${playerGuessName}</h3>
+    <p>${guessData.guess}</p>
+    <button class="vote" data-vote="correct" data-guess-id="${guessData.id}">Correct</button>
+    <button class="vote" data-vote="incorrect" data-guess-id="${guessData.id}">Incorrect</button>
+  `;
+  document.getElementById("host-guess-area").innerHTML = guessHtml;
+
+  // Add event listeners for voting buttons
+  const voteButtons = document.querySelectorAll(".vote");
+  voteButtons.forEach(button => {
+    button.addEventListener("click", (event) => {
+      const vote = event.target.dataset.vote;
+      const guessId = event.target.dataset.guessId;
+
+      // Save the vote to Firebase
+      const voteRef = db.ref(`games/${gameCode}/guesses/${guessId}/votes`).push();
+      voteRef.set({
+        playerId: currentPlayerId,
+        vote: vote
+      });
+
+      // Optionally, update the UI to reflect the vote
+    });
+  });
+}
+
+function getPlayerNameFromId(playerId, callback) {
+   const gameCode = localStorage.getItem("gameCode");
+   const playerRef = db.ref(`games/${gameCode}/players/${playerId}`);
+
+   playerRef.once('value', snapshot => {
+     if (snapshot.exists()) {
+       const playerData = snapshot.val();
+       console.log(playerData.name);
+       callback(playerData.name); // call the callback with the name
+     } else {
+       console.log('Player not found.');
+       callback(null);
+     }
+   });
+}
+
+
 
 
 
