@@ -312,13 +312,27 @@ function listenToGameState() {
   const playersRef = db.ref(`games/${gameCode}/players`);
   const guessesRef = db.ref(`games/${gameCode}/guesses`);
 
+  // ✅ Attach currentGuessingPlayer listener separately
+  if (hostScreen.classList.contains("active")) {
+    gameRef.child("currentGuessingPlayer").on("value", (snapshot) => {
+      const data = snapshot.val();
+      const hostGuessArea = document.getElementById("host-guess-area");
+      if (data && hostGuessArea) {
+        hostGuessArea.innerHTML = `
+          <h3>${data.playerName} is about to make a guess...</h3>
+          <p>Waiting for their guess submission.</p>
+        `;
+      } else if (hostGuessArea) {
+        hostGuessArea.innerHTML = "";
+      }
+    });
+  }
 
-  // Listen to game state
+  // 🔥 Then separately listen to main game state changes
   gameRef.on('value', snapshot => {
     const gameData = snapshot.val() || {};
     const currentTurnId = gameData.currentTurn;
     const gameStarted = gameData.gameStarted;
-
 
     if (currentTurnId) {
       playersRef.once('value', snapshot => {
@@ -328,7 +342,6 @@ function listenToGameState() {
         if (hostScreen.classList.contains("active")) {
           if (currentPlayer) {
             document.getElementById("current-turn").innerHTML = `<h3>It's ${currentPlayer.name}'s turn!</h3>`;
-
           }
         }
 
@@ -337,8 +350,10 @@ function listenToGameState() {
             document.getElementById("player-turn").innerHTML = `<h3>It's your turn, ${currentPlayer.name}!</h3>`;
             document.getElementById("end-turn").style.display = "block";
             document.getElementById("guess-answer").style.display = "block";
+
             const endTurnButton = document.getElementById("end-turn");
             const guessAnswerButton = document.getElementById("guess-answer");
+
             if (endTurnButton && !endTurnButton.dataset.listenerAdded) {
               endTurnButton.addEventListener("click", () => {
                 console.log("End turn button clicked.");
@@ -346,7 +361,8 @@ function listenToGameState() {
               });
               endTurnButton.dataset.listenerAdded = true;
             }
-             if (guessAnswerButton && !guessAnswerButton.dataset.listenerAdded) {
+
+            if (guessAnswerButton && !guessAnswerButton.dataset.listenerAdded) {
               guessAnswerButton.addEventListener("click", () => {
                 console.log("Player going to guess the answer.");
                 guessAnswer();
@@ -368,11 +384,12 @@ function listenToGameState() {
         document.getElementById("waiting-for-host").style.display = "none";
       }
     }
+
     // Listen for player guesses and update the host screen
-      guessesRef.on('child_added', snapshot => {
-        const guessData = snapshot.val();
-        displayGuessForVoting(guessData);
-      });
+    guessesRef.on('child_added', snapshot => {
+      const guessData = snapshot.val();
+      displayGuessForVoting(guessData);
+    });
   });
 
   // 🆕 Listen for player questionsLeft changes
@@ -381,6 +398,7 @@ function listenToGameState() {
     updateQuestionsLeftUI(players);
   });
 }
+
 
 
 function updateQuestionsLeftUI(players) {
@@ -445,51 +463,54 @@ function moveToNextTurn() {
   });
 }
 
-function guessAnswer(){
+function guessAnswer() {
   const gameCode = localStorage.getItem("gameCode");
   const playersRef = db.ref(`games/${gameCode}/players`);
   const gameRef = db.ref(`games/${gameCode}`);
+  const currentPlayerId = localStorage.getItem("playerId");
 
-
-  // Show a form for the player to submit their guess
-  const guessFormHtml = `
-    <h3>Your Guess</h3>
-    <input type="text" id="guess-input" placeholder="Type your guess...">
-    <button id="submit-guess">Submit Guess</button>
-  `;
-
-  // Show the guess form on the player screen
-  document.getElementById("player-guess-area").innerHTML = guessFormHtml;
-  document.getElementById("player-guess-area").style.display = "block";
-
-  // Listen for the "Submit Guess" button click
-  document.getElementById("submit-guess").addEventListener("click", () => {
-    const guess = document.getElementById("guess-input").value.trim();
-    if (!guess) return alert("Please enter a guess!");
-
-    // Save the guess to Firebase
-    const currentPlayerId = localStorage.getItem("playerId");
-    const guessRef = db.ref(`games/${gameCode}/guesses`).push();
-    const guessId = guessRef.key; // get the auto-generated ID
-    guessRef.set({
-      id: guessId,
-      playerId: currentPlayerId,
-      guess: guess,
-      timeSubmitted: firebase.database.ServerValue.TIMESTAMP
+  getPlayerNameFromId(currentPlayerId, (playerName) => {
+    // 🔥 Update the database that this player is guessing
+    gameRef.update({
+      currentGuessingPlayer: {
+        playerId: currentPlayerId,
+        playerName: playerName,
+        updatedAt: Date.now()
+      }
     });
 
-    // Update the host screen with the guess
-    const guessHtml = `
-      <h3>${currentPlayerId}'s Guess</h3>
-      <p>${guess}</p>
+    // Show guess form on player screen
+    const guessFormHtml = `
+      <h3>Your Guess</h3>
+      <input type="text" id="guess-input" placeholder="Type your guess...">
+      <button id="submit-guess">Submit Guess</button>
     `;
 
-    document.getElementById("host-guess-area").innerHTML = guessHtml;
+    document.getElementById("player-guess-area").innerHTML = guessFormHtml;
+    document.getElementById("player-guess-area").style.display = "block";
 
-    // Hide the guess form after submission
-    document.getElementById("player-guess-area").style.display = "none";
+    document.getElementById("submit-guess").addEventListener("click", () => {
+      const guess = document.getElementById("guess-input").value.trim();
+      if (!guess) return alert("Please enter a guess!");
+
+      const guessRef = db.ref(`games/${gameCode}/guesses`).push();
+      const guessId = guessRef.key;
+      guessRef.set({
+        id: guessId,
+        playerId: currentPlayerId,
+        guess: guess,
+        timeSubmitted: firebase.database.ServerValue.TIMESTAMP
+      });
+
+      // Hide guess form after submitting
+      document.getElementById("player-guess-area").style.display = "none";
+
+      // (optional) Clear currentGuessingPlayer if you want
+      // gameRef.child("currentGuessingPlayer").remove();
+    });
   });
 }
+
 
 
 function displayGuessForVoting(guessData) {
@@ -579,5 +600,7 @@ window.addEventListener("load", () => {
     playerScreen.classList.add("active");
     codeInput.value = code;
   }
+
+
 });
 
