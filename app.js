@@ -568,19 +568,24 @@ function markGuess(correctOrIncorrect, playerId){
     const gameCode = localStorage.getItem("gameCode");
     const playerRef = db.ref(`games/${gameCode}/players/${playerId}`);
      const guessesRef = db.ref(`games/${gameCode}/guesses`);
-     console.log("Attempting to delete guesses at:", `games/${gameCode}/guesses`);
-     console.log("Deleting from:", guessesRef.toString());
 
      console.log("the player: " + playerId + " was " + correctOrIncorrect);
-    if(correctOrIncorrect == "correct"){
-        // show them as being correct on screen for a few seconds and move onto next player
-        // TODO
+    if(correctOrIncorrect === "correct"){
+         db.ref(`games/${gameCode}/players/${playerId}`).update({ win: true });
+
+          // Show winner UI
+          showWinnerUI(playerId);
     }else{
       playerRef.once("value").then(snapshot => {
         const playerData = snapshot.val();
         reduceTheNumberOfQuestionsForPlayer(playerId);
         if (playerData && playerData.questionsLeft > 0) {
-            moveToNextTurn();
+            playerRef.update({ win: true })
+                 .then(() => {
+                   console.log("Player marked as winner.");
+                   // Optionally move to next turn if game continues
+                   moveToNextTurn();
+                 });
         } else {
           // TODO - you lose, you're out or something
           moveToNextTurn();
@@ -596,8 +601,30 @@ function markGuess(correctOrIncorrect, playerId){
                 });
             });
     }
+     // 🧼 Always clear previous guesses
+      guessesRef.remove();
 }
 
+function showWinnerUI(playerId) {
+  getPlayerNameFromId(playerId, (playerName) => {
+    const hostGuessArea = document.getElementById("host-guess-area");
+    hostGuessArea.innerHTML = `
+      <h3>🎉 ${playerName} has won! 🎉</h3>
+      <button id="continue-game">Continue Game</button>
+      <button id="end-game">End Game</button>
+    `;
+
+    document.getElementById("continue-game").addEventListener("click", () => {
+      db.ref(`games/${gameCode}/players/${playerId}`).update({ eliminated: true }); // Optionally mark winner as done
+      startNextTurn();
+    });
+
+    document.getElementById("end-game").addEventListener("click", () => {
+      // Redirect or show a game over screen
+      hostGuessArea.innerHTML = "<h3>Game Over. Thanks for playing!</h3>";
+    });
+  });
+}
 
 
 function getPlayerNameFromId(playerId, callback) {
