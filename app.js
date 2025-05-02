@@ -13,6 +13,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 let isHost = false;
 let gameStarted = false;
+let hasGuessedThisTurn = false;
+
 const db = firebase.database();
 const auth = firebase.auth();
 
@@ -348,8 +350,15 @@ function listenToGameState() {
         if (playerScreen.classList.contains("active")) {
           if (currentPlayerId === currentTurnId) {
             document.getElementById("player-turn").innerHTML = `<h3>It's your turn, ${currentPlayer.name}!</h3>`;
-            document.getElementById("end-turn").style.display = "block";
-            document.getElementById("guess-answer").style.display = "block";
+            if (!hasGuessedThisTurn) {
+                document.getElementById("answer-turn-area").style.display = "block";
+                document.getElementById("end-turn").style.display = "block";
+                document.getElementById("guess-answer").style.display = "block";
+            }else{
+                document.getElementById("answer-turn-area").style.display = "none";
+                document.getElementById("end-turn").style.display = "none";
+                document.getElementById("guess-answer").style.display = "none";
+            }
 
             const endTurnButton = document.getElementById("end-turn");
             const guessAnswerButton = document.getElementById("guess-answer");
@@ -357,6 +366,7 @@ function listenToGameState() {
             if (endTurnButton && !endTurnButton.dataset.listenerAdded) {
               endTurnButton.addEventListener("click", () => {
                 console.log("End turn button clicked.");
+                reduceTheNumberOfQuestionsForPlayer(currentPlayerId);
                 moveToNextTurn();
               });
               endTurnButton.dataset.listenerAdded = true;
@@ -365,6 +375,7 @@ function listenToGameState() {
             if (guessAnswerButton && !guessAnswerButton.dataset.listenerAdded) {
               guessAnswerButton.addEventListener("click", () => {
                 console.log("Player going to guess the answer.");
+                 hasGuessedThisTurn = true;
                 guessAnswer();
               });
               guessAnswerButton.dataset.listenerAdded = true;
@@ -418,6 +429,7 @@ function updateQuestionsLeftUI(players) {
 
 
 function moveToNextTurn() {
+  hasGuessedThisTurn = false;
   console.log("test move to next turn");
 
   const gameCode = localStorage.getItem("gameCode");
@@ -436,20 +448,7 @@ function moveToNextTurn() {
         console.error("No current turn found!");
         return;
       }
-
-      // 1. Reduce questionsLeft for the player who just finished their turn
-      const currentPlayerRef = db.ref(`games/${gameCode}/players/${currentTurnId}`);
-      currentPlayerRef.once('value', snapshot => {
-        const currentPlayerData = snapshot.val();
-        if (currentPlayerData && currentPlayerData.questionsLeft > 0) {
-          currentPlayerRef.update({
-            questionsLeft: currentPlayerData.questionsLeft - 1
-          });
-          console.log(`Reduced questions left for player ${currentTurnId}`);
-        }
-      });
-
-      // 2. Move to next player's turn
+      //  Move to next player's turn
       const currentTurnIndex = playerIds.indexOf(currentTurnId);
       const nextTurnIndex = (currentTurnIndex + 1) % playerIds.length;
       const nextTurnPlayerId = playerIds[nextTurnIndex];
@@ -463,6 +462,20 @@ function moveToNextTurn() {
   });
 }
 
+function reduceTheNumberOfQuestionsForPlayer(currentTurnId){
+    const gameCode = localStorage.getItem("gameCode");
+    const currentPlayerRef = db.ref(`games/${gameCode}/players/${currentTurnId}`);
+    currentPlayerRef.once('value', snapshot => {
+      const currentPlayerData = snapshot.val();
+      if (currentPlayerData && currentPlayerData.questionsLeft > 0) {
+        currentPlayerRef.update({
+          questionsLeft: currentPlayerData.questionsLeft - 1
+        });
+        console.log(`Reduced questions left for player ${currentTurnId}`);
+      }
+    });
+}
+
 function guessAnswer() {
   const gameCode = localStorage.getItem("gameCode");
   const playersRef = db.ref(`games/${gameCode}/players`);
@@ -470,43 +483,43 @@ function guessAnswer() {
   const currentPlayerId = localStorage.getItem("playerId");
 
   getPlayerNameFromId(currentPlayerId, (playerName) => {
-    // 🔥 Update the database that this player is guessing
-    gameRef.update({
-      currentGuessingPlayer: {
-        playerId: currentPlayerId,
-        playerName: playerName,
-        updatedAt: Date.now()
-      }
-    });
-
-    // Show guess form on player screen
-    const guessFormHtml = `
-      <h3>Your Guess</h3>
-      <input type="text" id="guess-input" placeholder="Type your guess...">
-      <button id="submit-guess">Submit Guess</button>
-    `;
-
-    document.getElementById("player-guess-area").innerHTML = guessFormHtml;
-    document.getElementById("player-guess-area").style.display = "block";
-
-    document.getElementById("submit-guess").addEventListener("click", () => {
-      const guess = document.getElementById("guess-input").value.trim();
-      if (!guess) return alert("Please enter a guess!");
-
-      const guessRef = db.ref(`games/${gameCode}/guesses`).push();
-      const guessId = guessRef.key;
-      guessRef.set({
-        id: guessId,
-        playerId: currentPlayerId,
-        guess: guess,
-        timeSubmitted: firebase.database.ServerValue.TIMESTAMP
+    // 🔥 Clear any previous guesses before starting a new one
+    db.ref(`games/${gameCode}/guesses`).remove().then(() => {
+      // ✅ Then mark this player as the current guesser
+      gameRef.update({
+        currentGuessingPlayer: {
+          playerId: currentPlayerId,
+          playerName: playerName,
+          updatedAt: Date.now()
+        }
       });
 
-      // Hide guess form after submitting
-      document.getElementById("player-guess-area").style.display = "none";
+      // Show guess form on player screen
+      const guessFormHtml = `
+        <h3>Your Guess</h3>
+        <input type="text" id="guess-input" placeholder="Type your guess...">
+        <button id="submit-guess">Submit Guess</button>
+      `;
 
-      // (optional) Clear currentGuessingPlayer if you want
-      // gameRef.child("currentGuessingPlayer").remove();
+      document.getElementById("player-guess-area").innerHTML = guessFormHtml;
+      document.getElementById("player-guess-area").style.display = "block";
+      document.getElementById("answer-turn-area").style.display = "none";
+
+      document.getElementById("submit-guess").addEventListener("click", () => {
+        const guess = document.getElementById("guess-input").value.trim();
+        if (!guess) return alert("Please enter a guess!");
+
+        const guessRef = db.ref(`games/${gameCode}/guesses`).push();
+        const guessId = guessRef.key;
+        guessRef.set({
+          id: guessId,
+          playerId: currentPlayerId,
+          guess: guess,
+          timeSubmitted: firebase.database.ServerValue.TIMESTAMP
+        });
+
+        document.getElementById("player-guess-area").style.display = "none";
+      });
     });
   });
 }
@@ -514,16 +527,16 @@ function guessAnswer() {
 
 
 function displayGuessForVoting(guessData) {
+    if (!guessData || !guessData.guess || guessData.guess.trim() === "") return; // ignore empty guesses
   const guesserPlayerId = guessData.playerId; // <-- use the guesser's ID
-
   getPlayerNameFromId(guesserPlayerId, (playerName) => {
     let playerGuessName = playerName || "Unknown";
 
     const guessHtml = `
       <h3>Guess by ${playerGuessName}</h3>
       <p>${guessData.guess}</p>
-      <button class="vote" data-vote="correct" data-guess-id="${guessData.id}">Correct</button>
-      <button class="vote" data-vote="incorrect" data-guess-id="${guessData.id}">Incorrect</button>
+      <button class="vote" data-vote="correct" data-guess-id="${guessData.id}" onClick="markGuess('correct', '${guesserPlayerId}')">Correct</button>
+      <button class="vote" data-vote="incorrect" data-guess-id="${guessData.id}"  onClick="markGuess('incorrect', '${guesserPlayerId}')">Incorrect</button>
     `;
     document.getElementById("host-guess-area").innerHTML = guessHtml;
 
@@ -534,18 +547,7 @@ function displayGuessForVoting(guessData) {
         const guessId = event.target.dataset.guessId;
         const gameCode = localStorage.getItem("gameCode");
 
-        // Save the host's vote directly under the guess
-        db.ref(`games/${gameCode}/guesses/${guessId}/vote`).set(vote)
-          .then(() => {
-            // Clear the guess area
-            document.getElementById("host-guess-area").innerHTML = "";
 
-            // Start next turn (you can trigger your next-turn logic here)
-            startNextTurn();
-          })
-          .catch((error) => {
-            console.error("Error saving vote:", error);
-          });
       });
     });
 
@@ -553,17 +555,38 @@ function displayGuessForVoting(guessData) {
   });
 }
 
-function startNextTurn() {
-  console.log("Starting next turn...");
+function markGuess(correctOrIncorrect, playerId){
+    const gameCode = localStorage.getItem("gameCode");
+    const playerRef = db.ref(`games/${gameCode}/players/${playerId}`);
+     const guessesRef = db.ref(`games/${gameCode}/guesses`);
+     console.log("Attempting to delete guesses at:", `games/${gameCode}/guesses`);
+     console.log("Deleting from:", guessesRef.toString());
 
-  // Example steps:
-  // - Increment a currentPlayerIndex
-  // - Set game state to "waiting for guess"
-  // - Notify next player it's their turn
-  // - Reset timers if you have timers
-
-  // For now, you could just show a simple message:
-  document.getElementById("host-guess-area").innerHTML = "<h3>Next player's turn!</h3>";
+     console.log("the player: " + playerId + " was " + correctOrIncorrect);
+    if(correctOrIncorrect == "correct"){
+        // show them as being correct on screen for a few seconds and move onto next player
+        // TODO
+    }else{
+      playerRef.once("value").then(snapshot => {
+        const playerData = snapshot.val();
+        reduceTheNumberOfQuestionsForPlayer(playerId);
+        if (playerData && playerData.questionsLeft > 0) {
+            moveToNextTurn();
+        } else {
+          // TODO - you lose, you're out or something
+          moveToNextTurn();
+        }
+        document.getElementById("host-guess-area").innerHTML = "";
+        guessesRef.remove()
+                .then(() => {
+                  console.log("Guesses cleared.");
+                  document.getElementById("host-guess-area").innerHTML = ""; // just in case
+                })
+                .catch(error => {
+                  console.error("Failed to clear guesses:", error.message);
+                });
+            });
+    }
 }
 
 
@@ -583,11 +606,6 @@ function getPlayerNameFromId(playerId, callback) {
      }
    });
 }
-
-
-
-
-
 
 
 // Auto-join via ?join=CODE
