@@ -616,7 +616,7 @@ function showWinnerUI(playerId) {
 
     document.getElementById("continue-game").addEventListener("click", () => {
       db.ref(`games/${gameCode}/players/${playerId}`).update({ eliminated: true }); // Optionally mark winner as done
-      startNextTurn();
+      moveToNextTurn();
     });
 
     document.getElementById("end-game").addEventListener("click", () => {
