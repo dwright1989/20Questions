@@ -14,6 +14,7 @@ firebase.initializeApp(firebaseConfig);
 let isHost = false;
 let gameStarted = false;
 let hasGuessedThisTurn = false;
+let lastTurnId = null;
 
 const db = firebase.database();
 const auth = firebase.auth();
@@ -346,10 +347,17 @@ function listenToGameState() {
             document.getElementById("current-turn").innerHTML = `<h3>It's ${currentPlayer.name}'s turn!</h3>`;
           }
         }
-
+        if (lastTurnId !== currentTurnId) {
+          hasGuessedThisTurn = false;
+          lastTurnId = currentTurnId;
+        }
         if (playerScreen.classList.contains("active")) {
           if (currentPlayerId === currentTurnId) {
             document.getElementById("player-turn").innerHTML = `<h3>It's your turn, ${currentPlayer.name}!</h3>`;
+             if (lastTurnId !== currentTurnId) {
+                hasGuessedThisTurn = false;
+                lastTurnId = currentTurnId;
+              }
             if (!hasGuessedThisTurn) {
                 document.getElementById("answer-turn-area").style.display = "block";
                 document.getElementById("end-turn").style.display = "block";
@@ -430,6 +438,7 @@ function updateQuestionsLeftUI(players) {
 
 function moveToNextTurn() {
   hasGuessedThisTurn = false;
+  lastTurnId = null; // force reset so the new one is set on next tick
   console.log("test move to next turn");
 
   const gameCode = localStorage.getItem("gameCode");
