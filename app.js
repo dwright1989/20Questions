@@ -342,6 +342,7 @@ function listenToGameState() {
         const players = snapshot.val() || {};
         const currentPlayer = players[currentTurnId];
 
+
         if (hostScreen.classList.contains("active")) {
           if (currentPlayer) {
             document.getElementById("current-turn").innerHTML = `<h3>It's ${currentPlayer.name}'s turn!</h3>`;
@@ -352,6 +353,19 @@ function listenToGameState() {
           lastTurnId = currentTurnId;
         }
         if (playerScreen.classList.contains("active")) {
+
+        // Check if current player has won
+        const thisPlayer = players[currentPlayerId];
+        if (thisPlayer && thisPlayer.win) {
+          // Show win message and hide rest of interface
+          document.getElementById("player-turn").innerHTML = `<h2>🎉 You guessed correctly and won! 🎉</h2>`;
+          document.getElementById("answer-turn-area").style.display = "none";
+          document.getElementById("player-question-area").style.display = "none";
+          document.getElementById("end-turn").style.display = "none";
+          document.getElementById("guess-answer").style.display = "none";
+          return; // skip further UI updates
+        }
+
           if (currentPlayerId === currentTurnId) {
             document.getElementById("player-turn").innerHTML = `<h3>It's your turn, ${currentPlayer.name}!</h3>`;
              if (lastTurnId !== currentTurnId) {
@@ -360,8 +374,13 @@ function listenToGameState() {
               }
             if (!hasGuessedThisTurn) {
                 document.getElementById("answer-turn-area").style.display = "block";
-                document.getElementById("end-turn").style.display = "block";
                 document.getElementById("guess-answer").style.display = "block";
+                 //  Force guess if only 1 question left
+                  if (currentPlayer.questionsLeft <= 1) {
+                    document.getElementById("end-turn").style.display = "none";
+                  } else {
+                    document.getElementById("end-turn").style.display = "block";
+                  }
             }else{
                 document.getElementById("answer-turn-area").style.display = "none";
                 document.getElementById("end-turn").style.display = "none";
