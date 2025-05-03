@@ -721,8 +721,9 @@ function showScoreboard() {
 
       const statusDiv = document.createElement("div");
       statusDiv.classList.add("player-status");
+
       if (player.win) {
-        statusDiv.textContent = "🎉 Winner!";
+        statusDiv.textContent = `🎉 Winner! (${player.questionsLeft || 0} questions left)`;
       } else {
         statusDiv.textContent = `❌ ${player.questionsLeft || 0} questions left`;
       }
@@ -754,6 +755,7 @@ function showScoreboard() {
     document.getElementById("host-screen").style.display = "none";
   });
 }
+
 
 
 
