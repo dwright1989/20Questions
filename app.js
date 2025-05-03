@@ -457,19 +457,35 @@ function moveToNextTurn() {
         console.error("No current turn found!");
         return;
       }
-      //  Move to next player's turn
+
       const currentTurnIndex = playerIds.indexOf(currentTurnId);
-      const nextTurnIndex = (currentTurnIndex + 1) % playerIds.length;
-      const nextTurnPlayerId = playerIds[nextTurnIndex];
+      let nextTurnPlayerId = null;
 
-      gameRef.update({
-        currentTurn: nextTurnPlayerId
-      });
+      for (let i = 1; i <= playerIds.length; i++) {
+        const nextIndex = (currentTurnIndex + i) % playerIds.length;
+        const candidateId = playerIds[nextIndex];
+        const candidate = players[candidateId];
 
-      console.log(`Moved turn to player ID: ${nextTurnPlayerId}`);
-    });
-  });
+        // Skip players who have won
+        if (candidate && !candidate.win) {
+          nextTurnPlayerId = candidateId;
+          break;
+        }
+      }
+
+      if (nextTurnPlayerId) {
+        gameRef.update({
+          currentTurn: nextTurnPlayerId
+        });
+        console.log(`Moved turn to player ID: ${nextTurnPlayerId}`);
+      } else {
+        console.log("No eligible players left to take a turn.");
+        // Optionally handle end-of-game here
+      }
+    }); // <-- This closes gameRef.once
+  }); // <-- This closes playersRef.once
 }
+
 
 function reduceTheNumberOfQuestionsForPlayer(currentTurnId){
     const gameCode = localStorage.getItem("gameCode");
