@@ -60,6 +60,15 @@
   pointer-events: none;
 }
 
+.message-area {
+  font-size: 1.2em;
+  color: red;
+  margin-top: 10px;
+  text-align: center;
+  transition: opacity 0.3s ease;
+}
+
+
 
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
@@ -97,6 +106,7 @@
         <h5 id="current-turn"></h5>
         <div id="host-questions-left"></div>
         <div id="host-guess-area"></div>
+        <div id="host-message" class="message-area"></div>
       </div>
 
   </div>

@@ -609,15 +609,20 @@ function markGuess(correctOrIncorrect, playerId){
 
     console.log("The player: " + playerId + " was " + correctOrIncorrect);
 
-    if (correctOrIncorrect === "correct") {
-        playerRef.update({ win: true });
-        showWinnerUI(playerId);
-    } else {
-        reduceTheNumberOfQuestionsForPlayer(playerId).then(() => {
+   if (correctOrIncorrect === "correct") {
+       playerRef.update({ win: true });
+       showWinnerUI(playerId);
+   } else {
+       playerRef.once("value").then(snapshot => {
+           const playerData = snapshot.val();
+           const playerName = playerData?.name || "A player";
+
+           showTemporaryMessage(`${playerName}'s guess was incorrect`, 2000);
+
+           return reduceTheNumberOfQuestionsForPlayer(playerId).then(() => {
                return playerRef.once("value");
            }).then(updatedSnap => {
                const updatedData = updatedSnap.val();
-
                if (updatedData && updatedData.questionsLeft > 0) {
                    console.log("moving to next turn");
                    moveToNextTurn();
@@ -627,16 +632,19 @@ function markGuess(correctOrIncorrect, playerId){
                }
 
                document.getElementById("host-guess-area").innerHTML = "";
-                guessesRef.remove()
-                         .then(() => {
-                             console.log("Guesses cleared.");
-                             document.getElementById("host-guess-area").innerHTML = "";
-                         })
-                         .catch(error => {
-                             console.error("Failed to clear guesses:", error.message);
-                         });
+
+               guessesRef.remove()
+                 .then(() => {
+                     console.log("Guesses cleared.");
+                     document.getElementById("host-guess-area").innerHTML = "";
+                 })
+                 .catch(error => {
+                     console.error("Failed to clear guesses:", error.message);
+                 });
+           });
        });
-    }
+   }
+
 
 }
 
@@ -712,6 +720,18 @@ console.log("show scoreboard");
     document.getElementById("host-screen").style.display = "none";
   });
 }
+
+function showTemporaryMessage(text, duration) {
+    const messageDiv = document.getElementById("host-message");
+    messageDiv.textContent = text;
+    messageDiv.style.opacity = 1;
+
+    setTimeout(() => {
+        messageDiv.style.opacity = 0;
+        messageDiv.textContent = "";
+    }, duration);
+}
+
 
 
 
