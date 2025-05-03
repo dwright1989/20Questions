@@ -602,43 +602,44 @@ function displayGuessForVoting(guessData) {
 function markGuess(correctOrIncorrect, playerId){
     const gameCode = localStorage.getItem("gameCode");
     const playerRef = db.ref(`games/${gameCode}/players/${playerId}`);
-     const guessesRef = db.ref(`games/${gameCode}/guesses`);
+    const guessesRef = db.ref(`games/${gameCode}/guesses`);
 
-     console.log("the player: " + playerId + " was " + correctOrIncorrect);
-    if(correctOrIncorrect === "correct"){
-         db.ref(`games/${gameCode}/players/${playerId}`).update({ win: true });
+    console.log("The player: " + playerId + " was " + correctOrIncorrect);
 
-          // Show winner UI
-          showWinnerUI(playerId);
-    }else{
-      playerRef.once("value").then(snapshot => {
-        const playerData = snapshot.val();
-        reduceTheNumberOfQuestionsForPlayer(playerId);
-        if (playerData && playerData.questionsLeft > 0) {
-            playerRef.update({ win: true })
-                 .then(() => {
-                   console.log("Player marked as winner.");
-                   // Optionally move to next turn if game continues
-                   moveToNextTurn();
-                 });
-        } else {
-          // TODO - you lose, you're out or something
-          moveToNextTurn();
-        }
-        document.getElementById("host-guess-area").innerHTML = "";
-        guessesRef.remove()
-                .then(() => {
+    if (correctOrIncorrect === "correct") {
+        // ✅ Only mark win here
+        playerRef.update({ win: true });
+        showWinnerUI(playerId);
+    } else {
+        playerRef.once("value").then(snapshot => {
+            const playerData = snapshot.val();
+            reduceTheNumberOfQuestionsForPlayer(playerId);
+
+            if (playerData && playerData.questionsLeft > 0) {
+                // ❌ Do NOT set win = true here
+                moveToNextTurn();
+            } else {
+                // TODO - you lose, you're out or something
+                moveToNextTurn();
+            }
+
+            document.getElementById("host-guess-area").innerHTML = "";
+
+            guessesRef.remove()
+              .then(() => {
                   console.log("Guesses cleared.");
-                  document.getElementById("host-guess-area").innerHTML = ""; // just in case
-                })
-                .catch(error => {
+                  document.getElementById("host-guess-area").innerHTML = "";
+              })
+              .catch(error => {
                   console.error("Failed to clear guesses:", error.message);
-                });
-            });
+              });
+        });
     }
-     // 🧼 Always clear previous guesses
-      guessesRef.remove();
+
+    // 🧼 Always clear previous guesses
+    guessesRef.remove();
 }
+
 
 function showWinnerUI(playerId) {
   getPlayerNameFromId(playerId, (playerName) => {
@@ -655,8 +656,7 @@ function showWinnerUI(playerId) {
     });
 
     document.getElementById("end-game").addEventListener("click", () => {
-      // Redirect or show a game over screen
-      hostGuessArea.innerHTML = "<h3>Game Over. Thanks for playing!</h3>";
+     showScoreboard();
     });
   });
 }
@@ -677,6 +677,31 @@ function getPlayerNameFromId(playerId, callback) {
      }
    });
 }
+
+function showScoreboard() {
+  const gameCode = localStorage.getItem("gameCode");
+  const playersRef = db.ref(`games/${gameCode}/players`);
+
+  playersRef.once('value').then(snapshot => {
+    const players = snapshot.val() || {};
+    const list = document.getElementById("scoreboard-list");
+    list.innerHTML = "";
+
+    Object.entries(players).forEach(([id, player]) => {
+      const li = document.createElement("li");
+      if (player.win) {
+        li.textContent = `${player.name} - 🎉 Winner!`;
+      } else {
+        li.textContent = `${player.name} - ❌ ${player.questionsLeft || 0} questions left`;
+      }
+      list.appendChild(li);
+    });
+
+    document.getElementById("scoreboard").style.display = "block";
+    document.getElementById("host-screen").style.display = "none";
+  });
+}
+
 
 
 // Auto-join via ?join=CODE
