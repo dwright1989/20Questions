@@ -315,7 +315,7 @@ function listenToGameState() {
   const playersRef = db.ref(`games/${gameCode}/players`);
   const guessesRef = db.ref(`games/${gameCode}/guesses`);
 
-  // ✅ Attach currentGuessingPlayer listener separately
+  //  Attach currentGuessingPlayer listener separately
   if (hostScreen.classList.contains("active")) {
     gameRef.child("currentGuessingPlayer").on("value", (snapshot) => {
       const data = snapshot.val();
@@ -331,7 +331,7 @@ function listenToGameState() {
     });
   }
 
-  // 🔥 Then separately listen to main game state changes
+  //  Then separately listen to main game state changes
   gameRef.on('value', snapshot => {
     const gameData = snapshot.val() || {};
     const currentTurnId = gameData.currentTurn;
@@ -430,7 +430,7 @@ function listenToGameState() {
     });
   });
 
-  // 🆕 Listen for player questionsLeft changes
+  //  Listen for player questionsLeft changes
   playersRef.on('value', snapshot => {
     const players = snapshot.val() || {};
     updateQuestionsLeftUI(players);
@@ -506,19 +506,22 @@ function moveToNextTurn() {
 }
 
 
-function reduceTheNumberOfQuestionsForPlayer(currentTurnId){
+function reduceTheNumberOfQuestionsForPlayer(currentTurnId) {
     const gameCode = localStorage.getItem("gameCode");
     const currentPlayerRef = db.ref(`games/${gameCode}/players/${currentTurnId}`);
-    currentPlayerRef.once('value', snapshot => {
-      const currentPlayerData = snapshot.val();
-      if (currentPlayerData && currentPlayerData.questionsLeft > 0) {
-        currentPlayerRef.update({
-          questionsLeft: currentPlayerData.questionsLeft - 1
-        });
-        console.log(`Reduced questions left for player ${currentTurnId}`);
-      }
+
+    return currentPlayerRef.once('value').then(snapshot => {
+        const currentPlayerData = snapshot.val();
+        if (currentPlayerData && currentPlayerData.questionsLeft > 0) {
+            return currentPlayerRef.update({
+                questionsLeft: currentPlayerData.questionsLeft - 1
+            }).then(() => {
+                console.log(`Reduced questions left for player ${currentTurnId}`);
+            });
+        }
     });
 }
+
 
 function guessAnswer() {
   const gameCode = localStorage.getItem("gameCode");
@@ -527,9 +530,9 @@ function guessAnswer() {
   const currentPlayerId = localStorage.getItem("playerId");
 
   getPlayerNameFromId(currentPlayerId, (playerName) => {
-    // 🔥 Clear any previous guesses before starting a new one
+    // Clear any previous guesses before starting a new one
     db.ref(`games/${gameCode}/guesses`).remove().then(() => {
-      // ✅ Then mark this player as the current guesser
+      // Then mark this player as the current guesser
       gameRef.update({
         currentGuessingPlayer: {
           playerId: currentPlayerId,
@@ -607,41 +610,40 @@ function markGuess(correctOrIncorrect, playerId){
     console.log("The player: " + playerId + " was " + correctOrIncorrect);
 
     if (correctOrIncorrect === "correct") {
-        // ✅ Only mark win here
         playerRef.update({ win: true });
         showWinnerUI(playerId);
     } else {
-        playerRef.once("value").then(snapshot => {
-            const playerData = snapshot.val();
-            reduceTheNumberOfQuestionsForPlayer(playerId);
+        reduceTheNumberOfQuestionsForPlayer(playerId).then(() => {
+               return playerRef.once("value");
+           }).then(updatedSnap => {
+               const updatedData = updatedSnap.val();
 
-            if (playerData && playerData.questionsLeft > 0) {
-                // ❌ Do NOT set win = true here
-                moveToNextTurn();
-            } else {
-                // TODO - you lose, you're out or something
-                moveToNextTurn();
-            }
+               if (updatedData && updatedData.questionsLeft > 0) {
+                   console.log("moving to next turn");
+                   moveToNextTurn();
+               } else {
+                   console.log("about to show scoreboard");
+                   showScoreboard();
+               }
 
-            document.getElementById("host-guess-area").innerHTML = "";
-
-            guessesRef.remove()
-              .then(() => {
-                  console.log("Guesses cleared.");
-                  document.getElementById("host-guess-area").innerHTML = "";
-              })
-              .catch(error => {
-                  console.error("Failed to clear guesses:", error.message);
-              });
-        });
+               document.getElementById("host-guess-area").innerHTML = "";
+                guessesRef.remove()
+                         .then(() => {
+                             console.log("Guesses cleared.");
+                             document.getElementById("host-guess-area").innerHTML = "";
+                         })
+                         .catch(error => {
+                             console.error("Failed to clear guesses:", error.message);
+                         });
+       });
     }
 
-    // 🧼 Always clear previous guesses
-    guessesRef.remove();
 }
 
 
 function showWinnerUI(playerId) {
+  const gameCode = localStorage.getItem("gameCode");
+  const guessesRef = db.ref(`games/${gameCode}/guesses`);
   getPlayerNameFromId(playerId, (playerName) => {
     const hostGuessArea = document.getElementById("host-guess-area");
     hostGuessArea.innerHTML = `
@@ -652,6 +654,14 @@ function showWinnerUI(playerId) {
 
     document.getElementById("continue-game").addEventListener("click", () => {
       db.ref(`games/${gameCode}/players/${playerId}`).update({ eliminated: true }); // Optionally mark winner as done
+       guessesRef.remove()
+       .then(() => {
+           console.log("Guesses cleared.");
+           document.getElementById("host-guess-area").innerHTML = "";
+       })
+       .catch(error => {
+           console.error("Failed to clear guesses:", error.message);
+       });
       moveToNextTurn();
     });
 
@@ -679,6 +689,7 @@ function getPlayerNameFromId(playerId, callback) {
 }
 
 function showScoreboard() {
+console.log("show scoreboard");
   const gameCode = localStorage.getItem("gameCode");
   const playersRef = db.ref(`games/${gameCode}/players`);
 
