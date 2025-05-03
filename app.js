@@ -498,8 +498,7 @@ function moveToNextTurn() {
         });
         console.log(`Moved turn to player ID: ${nextTurnPlayerId}`);
       } else {
-        console.log("No eligible players left to take a turn.");
-        // Optionally handle end-of-game here
+        showScoreboard();
       }
     }); // <-- This closes gameRef.once
   }); // <-- This closes playersRef.once
@@ -602,51 +601,52 @@ function displayGuessForVoting(guessData) {
   });
 }
 
-function markGuess(correctOrIncorrect, playerId){
+function markGuess(correctOrIncorrect, playerId) {
     const gameCode = localStorage.getItem("gameCode");
     const playerRef = db.ref(`games/${gameCode}/players/${playerId}`);
     const guessesRef = db.ref(`games/${gameCode}/guesses`);
 
     console.log("The player: " + playerId + " was " + correctOrIncorrect);
 
-   if (correctOrIncorrect === "correct") {
-       playerRef.update({ win: true });
-       showWinnerUI(playerId);
-   } else {
-       playerRef.once("value").then(snapshot => {
-           const playerData = snapshot.val();
-           const playerName = playerData?.name || "A player";
+    if (correctOrIncorrect === "correct") {
+        playerRef.update({ win: true });
+        showWinnerUI(playerId);
+    } else {
+        playerRef.once("value").then(snapshot => {
+            const playerData = snapshot.val();
+            const playerName = playerData?.name || "A player";
 
-           showTemporaryMessage(`${playerName}'s guess was incorrect`, 2000);
+            // Show a brief message indicating the guess was incorrect
+            showTemporaryMessage(`${playerName}'s guess was incorrect`, 2000);
 
-           return reduceTheNumberOfQuestionsForPlayer(playerId).then(() => {
-               return playerRef.once("value");
-           }).then(updatedSnap => {
-               const updatedData = updatedSnap.val();
-               if (updatedData && updatedData.questionsLeft > 0) {
-                   console.log("moving to next turn");
-                   moveToNextTurn();
-               } else {
-                   console.log("about to show scoreboard");
-                   showScoreboard();
-               }
+            // Reduce the number of questions for the player and then check if they still have questions
+            return reduceTheNumberOfQuestionsForPlayer(playerId).then(() => {
+                // After reducing the number of questions, check if the player has any left
+                if (playerData && playerData.questionsLeft > 0) {
+                    console.log("moving to next turn");
+                    moveToNextTurn();
+                } else {
+                    console.log("about to show scoreboard");
+                    showScoreboard();
+                }
 
-               document.getElementById("host-guess-area").innerHTML = "";
+                // Clear the guesses after processing
+                guessesRef.remove()
+                    .then(() => {
+                        console.log("Guesses cleared.");
+                        document.getElementById("host-guess-area").innerHTML = "";
+                    })
+                    .catch(error => {
+                        console.error("Failed to clear guesses:", error.message);
+                    });
+            });
+        });
+    }
 
-               guessesRef.remove()
-                 .then(() => {
-                     console.log("Guesses cleared.");
-                     document.getElementById("host-guess-area").innerHTML = "";
-                 })
-                 .catch(error => {
-                     console.error("Failed to clear guesses:", error.message);
-                 });
-           });
-       });
-   }
-
-
+    // Check if the game should end after each guess
+    checkIfGameShouldEnd();
 }
+
 
 
 function showWinnerUI(playerId) {
@@ -772,6 +772,35 @@ function showTemporaryMessage(text, duration) {
     }, duration);
 }
 
+function checkIfGameShouldEnd() {
+  const gameCode = localStorage.getItem("gameCode");
+  const playersRef = db.ref(`games/${gameCode}/players`);
+
+  playersRef.once('value').then(snapshot => {
+    const players = snapshot.val() || {};
+
+    // Check if any player still has questions left
+    const playersWithQuestionsLeft = Object.values(players).filter(player => player.questionsLeft > 0);
+
+    // If no players have questions left, end the game
+    if (playersWithQuestionsLeft.length === 0) {
+      console.log("No players left with questions, ending the game...");
+      endGame();  // Call your end game function
+    }
+  });
+}
+
+
+function endGame() {
+  console.log("Ending game...");
+
+  // Show final scoreboard
+  showScoreboard();
+
+  // Hide the host screen or display a message
+  document.getElementById("host-screen").style.display = "none";
+  document.getElementById("game-over-screen").style.display = "block";  // If you have a dedicated "game over" screen
+}
 
 
 
