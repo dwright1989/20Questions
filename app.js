@@ -695,9 +695,8 @@ function getPlayerNameFromId(playerId, callback) {
      }
    });
 }
-
 function showScoreboard() {
-console.log("show scoreboard");
+  console.log("show scoreboard");
   const gameCode = localStorage.getItem("gameCode");
   const playersRef = db.ref(`games/${gameCode}/players`);
 
@@ -708,11 +707,46 @@ console.log("show scoreboard");
 
     Object.entries(players).forEach(([id, player]) => {
       const li = document.createElement("li");
+      li.classList.add("scoreboard-player");
+
+      // Access player and character data
+      const character = player.character || {};
+      const characterName = character.name || "No character";
+      const characterImageURL = character.image || "placeholder.png";
+
+      // Create name and status section
+      const nameDiv = document.createElement("div");
+      nameDiv.classList.add("player-name");
+      nameDiv.textContent = player.name;  // Display player's name
+
+      const statusDiv = document.createElement("div");
+      statusDiv.classList.add("player-status");
       if (player.win) {
-        li.textContent = `${player.name} - 🎉 Winner!`;
+        statusDiv.textContent = "🎉 Winner!";
       } else {
-        li.textContent = `${player.name} - ❌ ${player.questionsLeft || 0} questions left`;
+        statusDiv.textContent = `❌ ${player.questionsLeft || 0} questions left`;
       }
+
+      // Create character section (name + image)
+      const characterDiv = document.createElement("div");
+      characterDiv.classList.add("player-character");
+
+      const img = document.createElement("img");
+      img.src = characterImageURL;
+      img.alt = characterName;
+      img.classList.add("scoreboard-avatar");
+
+      const charNameEl = document.createElement("div");
+      charNameEl.textContent = characterName;
+      charNameEl.classList.add("character-name");
+
+      characterDiv.appendChild(img);
+      characterDiv.appendChild(charNameEl);
+
+      // Append everything to the list item
+      li.appendChild(nameDiv);
+      li.appendChild(statusDiv);
+      li.appendChild(characterDiv);
       list.appendChild(li);
     });
 
@@ -720,6 +754,10 @@ console.log("show scoreboard");
     document.getElementById("host-screen").style.display = "none";
   });
 }
+
+
+
+
 
 function showTemporaryMessage(text, duration) {
     const messageDiv = document.getElementById("host-message");
