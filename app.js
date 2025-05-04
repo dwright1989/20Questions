@@ -153,7 +153,7 @@ function showOtherPlayersCharacters() {
     console.log("Game Code:", gameCode);  // Check if gameCode is set correctly
     const playersRef = firebase.database().ref(`games/${gameCode}/players`);
     const currentPlayerId = localStorage.getItem("playerId");
-
+    const topic = localStorage.getItem("topic");
     console.log("playersRef: " + playersRef);
 
     playersRef.on('value', snapshot => {
@@ -198,7 +198,7 @@ function chooseTopic(topic) {
   gameStarted = true;
   // Set gameStarted to true and the first turn to the first player
   const playersRef = db.ref(`games/${gameCode}/players`);
-
+  localStorage.setItem("topic", topic);
   playersRef.once('value', snapshot => {
     const players = snapshot.val() || {};
     const firstPlayerId = Object.keys(players)[0]; // First player becomes the first to play
@@ -224,57 +224,69 @@ function chooseTopic(topic) {
 
 
 
-function assignPlayerCharacters(topic) {
+async function assignPlayerCharacters(topic) {
   const gameCode = localStorage.getItem("gameCode");
-
   if (!gameCode) {
     console.error("Missing gameCode");
     return;
   }
 
-  // Fetch characters from Firebase
-  firebase.database().ref(`characters/${topic}`).once('value')
-    .then(snapshot => {
-      const characters = snapshot.val();
-      if (!characters) {
-        throw new Error("No characters found for topic: " + topic);
-      }
+  try {
+    // Fetch characters from Firebase
+    const snapshot = await firebase.database().ref(`characters/${topic}`).once('value');
+    const characters = snapshot.val();
+    if (!characters) {
+      throw new Error("No characters found for topic: " + topic);
+    }
 
-      const characterArray = Object.values(characters);
-      const usedIndexes = new Set(); // To prevent duplicates
+    const characterArray = Object.values(characters);
+    const usedIndexes = new Set(); // To prevent duplicates
 
-      // Fetch all players
-      return db.ref(`games/${gameCode}/players`).once('value').then(playerSnap => {
-        const players = playerSnap.val() || {};
-        const updates = {};
+    // Fetch all players
+    const playerSnap = await db.ref(`games/${gameCode}/players`).once('value');
+    const players = playerSnap.val() || {};
+    const updates = {};
 
-        Object.keys(players).forEach(playerId => {
-          let randomIndex;
-          do {
-            randomIndex = Math.floor(Math.random() * characterArray.length);
-          } while (usedIndexes.has(randomIndex) && usedIndexes.size < characterArray.length);
+    // Log the fetched topic and players
+    console.log("Fetched topic:", topic);
+    console.log("Fetched players:", players);
 
-          usedIndexes.add(randomIndex);
-          const character = characterArray[randomIndex];
+    // Loop through all players and assign characters
+    for (const playerId of Object.keys(players)) {
+      let randomIndex;
+      do {
+        randomIndex = Math.floor(Math.random() * characterArray.length);
+      } while (usedIndexes.has(randomIndex) && usedIndexes.size < characterArray.length);
 
-          updates[`games/${gameCode}/players/${playerId}/character`] = {
-            name: character.name,
-            image: character.image
-          };
-        });
+      usedIndexes.add(randomIndex);
+      const character = characterArray[randomIndex];
 
-        // Apply all character assignments at once
-        return db.ref().update(updates);
-      });
-    })
-    .then(() => {
-      console.log("Characters assigned to all players.");
-      showOtherPlayersCharacters();
-    })
-    .catch(error => {
-      console.error("Error assigning characters:", error);
-    });
+      // Check if the character and topic are being properly set
+      console.log(`Assigning character to player ${playerId}:`, character);
+      console.log(`Topic for player ${playerId}:`, topic);
+
+      const imageUrl = `images/${topic}/${character.imageName}`;
+      console.log(`Assigned image for player ${playerId}:`, imageUrl);
+
+      updates[`games/${gameCode}/players/${playerId}/character`] = {
+        name: character.name,
+        image: imageUrl
+      };
+    }
+
+    // Apply all character assignments at once
+    await db.ref().update(updates);
+    console.log("Characters assigned to all players.");
+
+    // Call the function to show other players' characters
+    showOtherPlayersCharacters();
+
+  } catch (error) {
+    console.error("Error assigning characters:", error);
+  }
 }
+
+
 
 
 
