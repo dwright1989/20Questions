@@ -51,6 +51,7 @@ function newGame() {
   gameCode = generateGameCode();
   const joinUrl = "https://dwright1989.github.io/quiz-time/index.html?join=" + gameCode;
   document.getElementById("game-code").innerHTML = `<h2>Game Code: ${gameCode}</h2><p>Or scan the QR to join!</p>`;
+  document.getElementById("qr-container").style.display = "inline-block";
 
   new QRious({
     element: document.getElementById("qr-code"),

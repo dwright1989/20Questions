@@ -1,11 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Quiz Game</title>
   <style>
-    body { font-family: sans-serif; text-align: center; background: #fdf6e3; }
+   body {
+      font-family: 'Fredoka', sans-serif;
+      background-color: #FFF8F0;
+      color: #444444;
+      text-align: center;
+      padding: 100px 20px;
+  }
+  h1 {
+    font-size: 3rem;
+    margin-bottom: 40px;
+    color: #FF6392;
+  }
+  h2 {
+  color: #5e548e;
+}
+  .cute-button {
+    background-color: #FFADAD;
+    border: none;
+    border-radius: 16px;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    margin: 10px;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  .cute-button:hover {
+    background-color: #FF6392;
+    transform: scale(1.05);
+  }
     .screen { display: none; padding: 2rem; }
     .active { display: block; }
     button { padding: 1rem 2rem; font-size: 1.2rem; margin: 1rem; }
@@ -76,8 +108,12 @@
 }
 
 .player-name {
-  font-weight: bold;
-  flex: 1;
+  background: #ffe5ec;
+  color: #6a4c93;
+  padding: 8px 12px;
+  margin: 5px;
+  border-radius: 12px;
+  display: inline-block;
 }
 
 .player-status {
@@ -102,6 +138,27 @@
   font-style: italic;
 }
 
+/* Container for the QR code */
+.qr-container {
+  background-color: #2b2b2b; /* Dark background */
+  padding: 20px;
+  border-radius: 10px;
+  display: inline-block;
+  text-align: center;
+}
+
+/* Canvas QR Code styling */
+#qr-code {
+  width: 200px; /* Adjust size as needed */
+  height: 200px;
+  border: 5px solid #ff69b4; /* Pink border around QR code */
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  background-color: #000; /* Black background within the canvas */
+}
+
+
+
 
 
 
@@ -116,9 +173,11 @@
   <div id="host-screen" class="screen active">
     <div id="host-start-screen" class="screen active">
       <h1>20 Questions</h1>
-      <button onclick="newGame()">New Game</button>
+      <button onclick="newGame()" class="cute-button">New Game</button>
       <div id="game-code"></div>
-      <canvas id="qr-code"></canvas>
+      <div id="qr-container" class="qr-container" style="display:none">
+         <canvas id="qr-code"></canvas>
+      </div>
       <div id="start-game-container" style="display: none;">
         <button onclick="startGame()">Start Game</button>
       </div>
@@ -160,10 +219,10 @@
 
   <div id="player-screen" class="screen">
     <div id="join-container" class="screen">
-      <h1>Join Quiz</h1>
+      <h1>Join Game</h1>
       <input type="text" id="code-input" placeholder="Enter game code" />
       <input type="text" id="player-name" placeholder="Your name" />
-      <button onclick="joinGame()">Join</button>
+      <button onclick="joinGame()" class="cute-button">Join</button>
     </div>  
      <div id="player-question-area" style="display:none;">
        <h1>20 Questions</h1>
