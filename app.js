@@ -196,6 +196,14 @@ function showOtherPlayersCharacters() {
 // Function to start the game
 function chooseTopic(topic) {
   gameStarted = true;
+  let difficulty;
+  const radios = document.querySelectorAll('input[name="difficulty"]');
+    for (const radio of radios) {
+      if (radio.checked) {
+        difficulty =  radio.value;
+      }
+    }
+    localStorage.setItem("difficulty", difficulty);
   // Set gameStarted to true and the first turn to the first player
   const playersRef = db.ref(`games/${gameCode}/players`);
   localStorage.setItem("topic", topic);
@@ -207,6 +215,7 @@ function chooseTopic(topic) {
     db.ref(`games/${gameCode}`).update({
       gameStarted: true,
       topic: topic,
+      difficulty: difficulty,
       currentTurn: firstPlayerId
     });
   });
@@ -216,7 +225,7 @@ function chooseTopic(topic) {
   document.getElementById("game-area").style.display = "block";
   document.getElementById("chosen-category").style.display = "block";
   document.getElementById("chosen-category").innerHTML = topicTitle;
-  assignPlayerCharacters(topic, "hard");
+  assignPlayerCharacters(topic, difficulty);
   listenToGameState();
 }
 
