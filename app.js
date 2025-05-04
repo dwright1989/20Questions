@@ -132,6 +132,9 @@ function joinGame() {
       playerScreen.classList.add("active");
       waitingScreen.style.display = "block";
 
+      // Start listening to this player's questionsLeft
+      listenToCurrentPlayerQuestionsLeft();
+
       let hasStartedListening = false;
       // Listen for gameStarted state from Firebase
       db.ref(`games/${code}`).on('value', snapshot => {
@@ -499,10 +502,6 @@ function updateQuestionsLeftUI(players) {
       Object.values(players).map(generatePlayerStatus).join('');
   }
 
-  if (playerQuestionsLeftArea) {
-    playerQuestionsLeftArea.innerHTML = "<h3>Questions Left:</h3>" +
-      Object.values(players).map(generatePlayerStatus).join('');
-  }
 }
 
 
@@ -725,6 +724,25 @@ function updateHostScreenPlayerStatus(playerId, hasWon) {
         }
     });
 }
+
+function listenToCurrentPlayerQuestionsLeft() {
+console.log("Listening to current player's questions left...");
+  const currentPlayerId = localStorage.getItem("playerId");
+  const gameCode = localStorage.getItem("gameCode");
+  const playerQuestionsLeftArea = document.getElementById("player-questions-left");
+
+  if (!currentPlayerId || !playerQuestionsLeftArea) return;
+
+  const currentPlayerRef = db.ref(`games/${gameCode}/players/${currentPlayerId}`);
+console.log("gameCode " + gameCode + " currentplayerId: " + currentPlayerId);
+  currentPlayerRef.on('value', snapshot => {
+    const playerData = snapshot.val();
+    if (playerData && typeof playerData.questionsLeft !== 'undefined') {
+      playerQuestionsLeftArea.innerHTML = `<div>Questions Left: ${playerData.questionsLeft}</div>`;
+    }
+  });
+}
+
 
 
 function showWinnerUI(playerId) {

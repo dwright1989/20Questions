@@ -364,7 +364,7 @@ ul {
 }
 
 #game-category,
-#current-player-details {
+#current-player-details, #player-questions-left{
   font-size: 12px;
   color: #444;
   background-color: #ffe6f0;
@@ -373,15 +373,6 @@ ul {
   display: inline-block;
 }
 
-@keyframes pulse {
-  0% { transform: scale(1); box-shadow: 0 0 0 rgba(255, 105, 180, 0.4); }
-  50% { transform: scale(1.05); box-shadow: 0 0 8px rgba(255, 105, 180, 0.4); }
-  100% { transform: scale(1); box-shadow: 0 0 0 rgba(255, 105, 180, 0.4); }
-}
-
-#current-player-area {
-  animation: pulse 1.2s infinite;
-}
 
 
   </style>
@@ -451,7 +442,7 @@ ul {
      <div id="player-question-area" style="display:none;">
        <div id="game-details">
          <div id="game-category-area"><h4 id="game-category-title">Category</h4> <h5 id="game-category"></h5></div>
-        <div id="current-player-area"><h4 id="current-player-title">Player</h4><div id="current-player-details"></div></div>
+        <div id="current-player-area"><h4 id="current-player-title">Player</h4><div id="current-player-details"></div><div id="player-questions-left"></div></div>
        </div>
        <div id="player-turn"></div>
        <div id="answer-turn-area">
@@ -460,7 +451,6 @@ ul {
        </div>
        <div id="player-guess-area"></div>
        <div id="other-players-answers">Other players characters should be displayed here with their names</div>
-       <h6>Number of questions left: <span id="player-questions-left"></span></h6>
        <textarea>Enter your notes here</textarea>
      </div>
     <div id="waiting-for-host" style="display: none;"><h3>Waiting for host to start the game</h3></div>
