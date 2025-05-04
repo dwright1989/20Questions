@@ -11,11 +11,10 @@
       background-color: #FFF8F0;
       color: #444444;
       text-align: center;
-      padding: 100px 20px;
+      padding: 50px 20px;
   }
   h1 {
     font-size: 3rem;
-    margin-bottom: 40px;
     color: #FF6392;
   }
   h2 {
@@ -38,7 +37,7 @@
     background-color: #FF6392;
     transform: scale(1.05);
   }
-    .screen { display: none; padding: 2rem; }
+    .screen { display: none; }
     .active { display: block; }
     button { padding: 1rem 2rem; font-size: 1.2rem; margin: 1rem; }
     #timer-container {
@@ -158,10 +157,151 @@
 }
 
 
+/* General input field styling */
+input[type="text"], input[type="number"], input[type="email"], textarea {
+  background-color: #2b2b2b; /* Dark background */
+  color: #fff; /* White text */
+  border: 2px solid #ff69b4; /* Pink border */
+  border-radius: 8px; /* Rounded corners */
+  padding: 10px; /* Internal padding */
+  font-size: 16px; /* Font size */
+  width: 100%; /* Full width */
+  max-width: 400px; /* Max width */
+  margin: 10px 0; /* Spacing around the input */
+  box-sizing: border-box; /* Includes padding in width/height calculation */
+  transition: all 0.3s ease; /* Smooth transition for focus and hover */
+}
 
+/* Input field focus state */
+input[type="text"]:focus, input[type="number"]:focus, input[type="email"]:focus, textarea:focus {
+  border-color: #ff1493; /* Brighter pink on focus */
+  outline: none; /* Remove default outline */
+  box-shadow: 0 0 5px rgba(255, 105, 180, 0.7); /* Subtle glow */
+}
 
+/* Placeholder text styling */
+input::placeholder, textarea::placeholder {
+  color: #bbb; /* Lighter placeholder text */
+  font-style: italic; /* Italic placeholder text */
+}
 
+/* Disabled input field styling */
+input:disabled, textarea:disabled {
+  background-color: #444;
+  color: #888;
+  cursor: not-allowed;
+}
 
+/* Add some hover effects */
+input[type="text"]:hover, input[type="number"]:hover, input[type="email"]:hover, textarea:hover {
+  border-color: #ff69b4; /* Light pink on hover */
+}
+
+/* For the submit button, you can add some nice styling as well */
+button {
+  background-color: #ff69b4; /* Pink button */
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #ff1493; /* Darker pink on hover */
+}
+
+.radio-group {
+            display: flex;
+            justify-content:center;
+            flex-direction: row;
+            gap: 20px;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        input[type="radio"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #f0a1d7;
+            background-color: #333;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        input[type="radio"]:checked {
+            background-color: #f0a1d7;
+        }
+
+        input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            border-radius: 50%;
+        }
+
+        input[type="radio"]:focus {
+            outline: none;
+            box-shadow: 0 0 5px 2px rgba(240, 161, 215, 0.5);
+        }
+
+        .radio-group label:hover input[type="radio"] {
+            border-color: #f0a1d7;
+        }
+
+ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .topic-choice {
+            background-color: #f0a1d7;
+            color: white;
+            font-size: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .topic-choice:hover {
+            background-color: #d47cbb;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .topic-choice:active {
+            background-color: #c365a1;
+            transform: translateY(1px);
+        }
+
+        .disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
 
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
@@ -170,34 +310,36 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 </head>
 <body>
+<h1>20 Questions</h1>
   <div id="host-screen" class="screen active">
     <div id="host-start-screen" class="screen active">
-      <h1>20 Questions</h1>
       <button onclick="newGame()" class="cute-button">New Game</button>
       <div id="game-code"></div>
       <div id="qr-container" class="qr-container" style="display:none">
          <canvas id="qr-code"></canvas>
       </div>
       <div id="start-game-container" style="display: none;">
-        <button onclick="startGame()">Start Game</button>
+        <button class="cute-button" onclick="startGame()">Start Game</button>
       </div>
       <div id="player-list"></div>
     </div>
     <div id="host-question-area" style="display:none;">
       <div id="choose-topic" style="display:none;">
         <p>Select difficulty:</p>
-        <label><input type="radio" name="difficulty" value="easy" checked> Easy</label>
-        <label><input type="radio" name="difficulty" value="medium"> Medium</label>
-        <label><input type="radio" name="difficulty" value="hard"> Hard</label>
+        <div class="radio-group">
+          <label><input type="radio" name="difficulty" value="easy" checked> Easy</label>
+          <label><input type="radio" name="difficulty" value="medium"> Medium</label>
+          <label><input type="radio" name="difficulty" value="hard"> Hard</label>
+        </div>
         <h5>Select the category</h5>
         <ul>
           <li id="south-park" class="topic-choice" onclick="chooseTopic('southPark')">South Park</li>
-          <li>Friends (Coming soon...)</li>
-          <li>Harry Potter (Coming soon...)</li>
-          <li>Horror Films (Coming soon...)</li>
-          <li>Horror Baddies (Coming soon...)</li>
-          <li>Disney Films (Coming soon...)</li>
-          <li>Disney Characters (Coming soon...)</li>
+          <li class="topic-choice">Friends (Coming soon...)</li>
+          <li class="topic-choice">Harry Potter (Coming soon...)</li>
+          <li class="topic-choice">Horror Films (Coming soon...)</li>
+          <li class="topic-choice">Horror Baddies (Coming soon...)</li>
+          <li class="topic-choice">Disney Films (Coming soon...)</li>
+          <li class="topic-choice">Disney Characters (Coming soon...)</li>
         </ul>
     </div>
       <div id="game-area" style="display:none;">
@@ -225,7 +367,6 @@
       <button onclick="joinGame()" class="cute-button">Join</button>
     </div>  
      <div id="player-question-area" style="display:none;">
-       <h1>20 Questions</h1>
        <h5 id="game-category"></h5>
        <div id="current-player-details"></div>
        <div id="player-turn"></div>
