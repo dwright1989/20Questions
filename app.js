@@ -216,7 +216,7 @@ function chooseTopic(topic) {
   document.getElementById("game-area").style.display = "block";
   document.getElementById("chosen-category").style.display = "block";
   document.getElementById("chosen-category").innerHTML = topicTitle;
-  assignPlayerCharacters(topic);
+  assignPlayerCharacters(topic, "hard");
   listenToGameState();
 }
 
@@ -224,7 +224,7 @@ function chooseTopic(topic) {
 
 
 
-async function assignPlayerCharacters(topic) {
+async function assignPlayerCharacters(topic, difficulty) {
   const gameCode = localStorage.getItem("gameCode");
   if (!gameCode) {
     console.error("Missing gameCode");
@@ -232,26 +232,36 @@ async function assignPlayerCharacters(topic) {
   }
 
   try {
-    // Fetch characters from Firebase
+    // Fetch characters from Firebase for the given topic
     const snapshot = await firebase.database().ref(`characters/${topic}`).once('value');
     const characters = snapshot.val();
     if (!characters) {
       throw new Error("No characters found for topic: " + topic);
     }
 
-    const characterArray = Object.values(characters);
-    const usedIndexes = new Set(); // To prevent duplicates
+    // Convert characters to array and filter by difficulty
+    let characterArray = Object.values(characters);
+
+    const allowedDifficulties = {
+      easy: ["easy"],
+      medium: ["easy", "medium"],
+      hard: ["easy", "medium", "hard"]
+    };
+
+    const validDifficulties = allowedDifficulties[difficulty] || ["easy"];
+    characterArray = characterArray.filter(c => validDifficulties.includes(c.difficulty));
+
+    if (characterArray.length === 0) {
+      throw new Error(`No characters found for difficulty: ${difficulty}`);
+    }
+
+    const usedIndexes = new Set();
 
     // Fetch all players
     const playerSnap = await db.ref(`games/${gameCode}/players`).once('value');
     const players = playerSnap.val() || {};
     const updates = {};
 
-    // Log the fetched topic and players
-    console.log("Fetched topic:", topic);
-    console.log("Fetched players:", players);
-
-    // Loop through all players and assign characters
     for (const playerId of Object.keys(players)) {
       let randomIndex;
       do {
@@ -261,30 +271,21 @@ async function assignPlayerCharacters(topic) {
       usedIndexes.add(randomIndex);
       const character = characterArray[randomIndex];
 
-      // Check if the character and topic are being properly set
-      console.log(`Assigning character to player ${playerId}:`, character);
-      console.log(`Topic for player ${playerId}:`, topic);
-
-      const imageUrl = `images/${topic}/${character.imageName}`;
-      console.log(`Assigned image for player ${playerId}:`, imageUrl);
-
       updates[`games/${gameCode}/players/${playerId}/character`] = {
         name: character.name,
-        image: imageUrl
+        image: `images/${topic}/${character.imageName}`
       };
     }
 
-    // Apply all character assignments at once
     await db.ref().update(updates);
     console.log("Characters assigned to all players.");
-
-    // Call the function to show other players' characters
     showOtherPlayersCharacters();
 
   } catch (error) {
     console.error("Error assigning characters:", error);
   }
 }
+
 
 
 
