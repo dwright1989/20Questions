@@ -71,15 +71,35 @@ function newGame() {
   console.log("about to listen to game state change from new game");
   listenToGameState();
 
+  const shownPlayers = new Set(); // Track already displayed players
+
   db.ref(`games/${gameCode}/players`).on('value', snapshot => {
     const players = snapshot.val() || {};
-    playerList.innerHTML = `<h3>Players Joined:</h3>` +
-      Object.values(players).map(player => `<p>${player.name}</p>`).join('');
-    // Show Start Game button only if at least one player is present
-    if (Object.keys(players).length > 0) {
-      document.getElementById("start-game-container").style.display = "block";
-    }
+    const playerList = document.getElementById("player-list");
+
+    // Update Start Game button visibility
+    const hasPlayers = Object.keys(players).length > 0;
+    document.getElementById("start-game-container").style.display = hasPlayers ? "block" : "none";
+
+    // Don't reset the whole list — just append new ones
+    Object.values(players).forEach(player => {
+      if (!shownPlayers.has(player.name)) {
+        shownPlayers.add(player.name);
+
+        const p = document.createElement("p");
+        p.textContent = player.name;
+        p.classList.add("player-name", "player-entry"); // animate!
+
+        playerList.appendChild(p);
+
+        // Optional: remove animation class after it's done
+        setTimeout(() => {
+          p.classList.remove("player-entry");
+        }, 500);
+      }
+    });
   });
+
 }
 
 // Function to join a game
