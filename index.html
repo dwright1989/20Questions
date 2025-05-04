@@ -372,7 +372,6 @@ ul {
     flex-wrap: wrap; /* allows wrapping on smaller screens */
     gap: 12px;
     justify-content: center; /* optional: center the row */
-    margin-top: 10px;
   }
 
   .player {
@@ -392,6 +391,36 @@ ul {
     height: auto;
   }
 
+#other-players-answers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+#other-players-answers .player {
+  background: #fff7fc;
+  border: 2px solid #f3c5e0;
+  border-radius: 16px;
+  box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  width: 130px;
+  text-align: center;
+  font-family: 'Comic Sans MS', 'Poppins', sans-serif;
+  transition: transform 0.2s ease;
+}
+
+#other-players-answers .player:hover {
+  transform: scale(1.05);
+}
+
+#other-players-answers .player img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-bottom: 6px;
+}
 
 
 
@@ -470,8 +499,8 @@ ul {
          <button id="guess-answer" class="cute-button" style="display:none;">Guess</button>
        </div>
        <div id="player-guess-area"></div>
+       <textarea placeholder="Enter your notes here..."></textarea>
        <div id="other-players-answers">Other players characters should be displayed here with their names</div>
-       <textarea>Enter your notes here</textarea>
      </div>
     <div id="waiting-for-host" style="display: none;"><h3>Waiting for host to start the game</h3></div>
   </div>
