@@ -11,7 +11,8 @@
       background-color: #FFF8F0;
       color: #444444;
       text-align: center;
-      padding: 50px 20px;
+      padding-left: 20px;
+      padding-right: 20px;
   }
   h1 {
     font-size: 3rem;
@@ -322,6 +323,13 @@ ul {
   animation: fadeInSlideUp 0.4s ease-out;
 }
 
+#host-screen{
+  padding-top:50px;
+}
+#player-screen{
+  padding-top: 0px;
+}
+
 
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
@@ -330,8 +338,8 @@ ul {
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 </head>
 <body>
-<h1>20 Questions</h1>
   <div id="host-screen" class="screen active">
+    <h1>20 Questions</h1>
     <div id="host-start-screen" class="screen active">
       <button onclick="newGame()" class="cute-button">New Game</button>
       <div id="game-code"></div>
@@ -380,6 +388,7 @@ ul {
   </div>
 
   <div id="player-screen" class="screen">
+    <h1>20 Questions</h1>
     <div id="join-container" class="screen">
       <h1>Join Game</h1>
       <input type="text" id="code-input" placeholder="Enter game code" />
