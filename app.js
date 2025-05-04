@@ -182,7 +182,10 @@ function showOtherPlayersCharacters() {
 
     playersRef.on('value', snapshot => {
         const players = snapshot.val() || {};
-        let otherPlayersHtml = "<h3>Other Players' Characters:</h3>";
+        let otherPlayersHtml = `
+          <h3>Other Players' Characters:</h3>
+          <div class="player-row">
+        `;
 
         console.log("Players data: ", players);  // Debugging player data
 
@@ -199,7 +202,7 @@ function showOtherPlayersCharacters() {
                 `;
             }
         });
-
+        otherPlayersHtml += `</div>`;
         console.log("Generated HTML:", otherPlayersHtml);
 
         // Update the HTML for the player screen
@@ -419,7 +422,7 @@ function listenToGameState() {
                 lastTurnId = currentTurnId;
               }
             if (!hasGuessedThisTurn) {
-                document.getElementById("answer-turn-area").style.display = "block";
+                document.getElementById("answer-turn-area").style.display = "flex";
                 document.getElementById("guess-answer").style.display = "block";
                  //  Force guess if only 1 question left
                   if (currentPlayer.questionsLeft <= 1) {

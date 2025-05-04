@@ -332,46 +332,66 @@ ul {
 
 #game-details {
   display: flex;
-  justify-content: center;
-  align-items: stretch;
-  gap: 8px;
-  margin: 8px auto;
-  flex-wrap: nowrap;
-  max-width: 100%;
-  padding: 0 8px;
-  box-sizing: border-box;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background-color: #ffe6f0; /* soft pink */
+  border: 2px solid #ffb3d1;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 6px rgba(255, 192, 203, 0.3);
 }
 
 #game-category-area,
 #current-player-area {
   flex: 1;
-  min-width: 0;
-  background: #fff0f6;
-  border: 1px solid #ffaec9;
-  border-radius: 12px;
-  padding: 8px;
-  text-align: center;
-  box-shadow: 0 2px 6px rgba(255, 174, 201, 0.2);
-  font-family: "Comic Sans MS", cursive, sans-serif;
+  min-width: 120px;
 }
 
 #game-category-title,
 #current-player-title {
-  margin-bottom: 4px;
-  font-size: 13px;
-  color: #ff69b4;
-  font-weight: bold;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ff4da6; /* cute pink */
 }
 
 #game-category,
-#current-player-details, #player-questions-left{
-  font-size: 12px;
-  color: #444;
-  background-color: #ffe6f0;
-  padding: 2px 6px;
-  border-radius: 8px;
-  display: inline-block;
+#current-player-details {
+  margin: 2px 0 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #4d004d; /* deep plum */
 }
+
+
+  .player-row {
+    display: flex;
+    flex-wrap: wrap; /* allows wrapping on smaller screens */
+    gap: 12px;
+    justify-content: center; /* optional: center the row */
+    margin-top: 10px;
+  }
+
+  .player {
+    background-color: #f8f8f8;
+    border-radius: 12px;
+    padding: 10px;
+    width: 80px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    font-size: 0.9em;
+  }
+
+  .player img {
+  object-fit: cover;
+    border-radius: 8px;
+    width: 100%;
+    height: auto;
+  }
+
 
 
 
@@ -446,8 +466,8 @@ ul {
        </div>
        <div id="player-turn"></div>
        <div id="answer-turn-area">
-         <button id="end-turn" style="display:none;">End Turn</button>
-         <button id="guess-answer" style="display:none;">Guess</button>
+         <button id="end-turn" class="cute-button" style="display:none;">End Turn</button>
+         <button id="guess-answer" class="cute-button" style="display:none;">Guess</button>
        </div>
        <div id="player-guess-area"></div>
        <div id="other-players-answers">Other players characters should be displayed here with their names</div>
