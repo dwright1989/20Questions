@@ -722,25 +722,44 @@ ul {
 
 
 #host-guess-area {
-  background-color: rgba(156, 39, 176, 0.1); /* Light purple */
-  color: #9c27b0; /* Purple text */
-  padding: 20px;
+  background: #fef1f1; /* Soft pale pink background */
+  color: #4e4e4e; /* Soft dark gray text for better readability */
+  padding: 30px;
   border-radius: 15px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
   text-align: center;
   max-width: 80%;
   margin: 20px auto;
+  font-family: 'Poppins', sans-serif;
 }
 
 #host-guess-area h3 {
   font-size: 24px;
-  font-family: 'Poppins', sans-serif;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  color: #66c7b7; /* Soft minty green */
+  font-weight: bold;
 }
 
 #host-guess-area p {
   font-size: 18px;
-  font-family: 'Poppins', sans-serif;
+  color: #f0a0b0; /* Soft rose pink */
+  font-weight: 300;
+  margin-bottom: 0;
+}
+
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+#host-guess-area {
+  animation: slideIn 1s ease-out;
 }
 
 
