@@ -270,6 +270,7 @@ function chooseTopic(topic) {
   document.getElementById("game-area").style.display = "block";
   document.getElementById("chosen-category").style.display = "block";
   document.getElementById("chosen-category").innerHTML = topicTitle;
+  document.getElementById("topic-image").appendChild(getTopicImage(topic));
   assignPlayerCharacters(topic, difficulty);
   listenToGameState();
 }
@@ -372,6 +373,23 @@ function getTopicName(topic){
       default:
         return "Unknown";
     }
+}
+
+function getTopicImage(topic){
+    const img = document.createElement("img");
+    switch(topic){
+        case "southPark":
+            img.src = "images/south-park.png";
+            img.alt = "South Park";
+            break;
+        case "friends":
+            img.src = "images/friends.png";
+            img.alt = "friends";
+            break;
+       default:
+            img.alt="unknown";
+    }
+    return img;
 }
 
 function listenToGameState() {
@@ -511,15 +529,25 @@ function updateQuestionsLeftUI(players) {
   const playerQuestionsLeftArea = document.getElementById("player-questions-left");
 
   const generatePlayerStatus = (player) => {
+  const questionsLeft = player.questionsLeft;
+  let colorClass = '';
+  // Change color based on questions left
+      if (questionsLeft <= 2) {
+        colorClass = 'few-questions'; // Red for 2 or less questions left
+      } else if (questionsLeft <= 5) {
+        colorClass = 'some-questions'; // Yellow for 3-5 questions left
+      } else {
+        colorClass = 'many-questions'; // Green for more than 5 questions left
+      }
     if (player.win) {
-      return `<p>${player.name}: 🎉 Winner!</p>`;
+      return `<p><span class="player-name winner">${player.name}</span> 🎉 Winner!</p>`;
     } else {
-      return `<p>${player.name}: ${player.questionsLeft} left</p>`;
+      return `<p><span class="player-name">${player.name}</span><span class="questions-left ${colorClass}">${questionsLeft} left</span></p>`;
     }
   };
 
   if (hostQuestionsLeftArea) {
-    hostQuestionsLeftArea.innerHTML = "<h3>Questions Left:</h3>" +
+    hostQuestionsLeftArea.innerHTML = "<h3>Questions Left</h3>" +
       Object.values(players).map(generatePlayerStatus).join('');
   }
 

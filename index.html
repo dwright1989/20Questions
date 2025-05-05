@@ -473,6 +473,192 @@ ul {
 
 
 
+#top-game-area {
+  max-width: 700px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background-color: #ffeef8; /* light pink background */
+  border-radius: 16px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+  font-family: 'Poppins', sans-serif;
+  flex-wrap: wrap; /* ensures responsiveness */
+}
+
+/* Category details styling */
+#category-details {
+  background-color: #fff0f6;
+  padding: 20px;
+  border-radius: 12px;
+  flex: 1;
+  min-width: 200px;
+  max-width: 300px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+#category-details h5 {
+  font-size: 22px;
+  margin-top: 0px;
+  margin-bottom: 10px;
+  color: #703d57;
+}
+
+#category-details h5 span {
+  color: #f48fb1;
+}
+
+/* Image container */
+#topic-image {
+  height: 100px;
+  border-radius: 10px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-top: 10px;
+}
+
+#topic-image img{
+  max-width:100px;
+
+}
+
+#host-questions-left {
+  font-family: 'Comic Sans MS', 'Poppins', cursive, sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  color: #944c8c;
+  padding: 12px 20px;
+  border: 3px solid transparent;
+  border-radius: 16px;
+  background-image:
+    linear-gradient(#fef5fb, #fef5fb), /* soft pastel background */
+    linear-gradient(135deg, #fbd3e9, #c6f0ff, #fcd1ff, #d0ffe1, #fffacc);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 0 10px rgba(255, 200, 245, 0.4);
+  text-align: center;
+  position: relative;
+  transform: rotate(-2deg);
+  display: inline-block;
+}
+
+#host-questions-left h3 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+  color: #6a4c9c;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.player-name {
+  display: inline-block;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  color: #ff66b3; /* soft pink color */
+  background-color: #ffccf5; /* pastel pink background */
+  padding: 8px 16px;
+  margin: 4px 8px;
+  border-radius: 50px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.player-name:hover {
+  transform: scale(1.1);
+  background-color: #ffb3e6; /* slightly darker pink */
+  color: white;
+}
+
+.player-name:active {
+  transform: scale(0.95);
+}
+
+.player-name.winner {
+  color: #ff77ff; /* bright pink for winners */
+  background-color: #f7c9ff; /* light purple background for winners */
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
+#host-questions-left h3 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+  color: #6a4c9c;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.player-name {
+  display: inline-block;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  color: #ff66b3; /* soft pink color */
+  background-color: #ffccf5; /* pastel pink background */
+  padding: 8px 16px;
+  margin: 4px 8px;
+  border-radius: 50px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.player-name:hover {
+  transform: scale(1.1);
+  background-color: #ffb3e6; /* slightly darker pink */
+  color: white;
+}
+
+.player-name:active {
+  transform: scale(0.95);
+}
+
+.player-name.winner {
+  color: #ff77ff; /* bright pink for winners */
+  background-color: #f7c9ff; /* light purple background for winners */
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
+.questions-left {
+  font-family: 'Poppins', sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 30px;
+  margin-left: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.questions-left.few-questions {
+  background-color: #ffcccb; /* light red */
+  color: #ff6666; /* red text */
+}
+
+.questions-left.some-questions {
+  background-color: #fff4b3; /* light yellow */
+  color: #f5c200; /* yellow text */
+}
+
+.questions-left.many-questions {
+  background-color: #d1f7d1; /* light green */
+  color: #66b266; /* green text */
+}
+
+.questions-left:hover {
+  transform: scale(1.05);
+}
+
+.questions-left:active {
+  transform: scale(0.95);
+}
+
+
   </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
@@ -533,9 +719,14 @@ ul {
         </div>
     </div>
       <div id="game-area" style="display:none;">
-        <h5>Category: <span id="chosen-category"></span></h5>
+        <div id="top-game-area">
+          <div id="category-details">
+            <h5>Category: <span id="chosen-category"></span></h5>
+            <div id="topic-image"></div>
+          </div>
+          <div id="host-questions-left"></div>
+        </div>
         <h5 id="current-turn"></h5>
-        <div id="host-questions-left"></div>
         <div id="host-guess-area"></div>
         <div id="host-message" class="message-area"></div>
       </div>
