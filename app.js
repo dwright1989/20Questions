@@ -622,6 +622,7 @@ function reduceTheNumberOfQuestionsForPlayer(currentTurnId) {
 
 
 function guessAnswer() {
+  hasGuessedThisTurn = false;
   const gameCode = localStorage.getItem("gameCode");
   const playersRef = db.ref(`games/${gameCode}/players`);
   const gameRef = db.ref(`games/${gameCode}`);
