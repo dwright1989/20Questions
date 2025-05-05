@@ -716,7 +716,33 @@ ul {
 
 #current-turn-area {
   display: flex;
+  gap: 1rem;
+  justify-self: center;
 }
+
+
+#host-guess-area {
+  background-color: rgba(156, 39, 176, 0.1); /* Light purple */
+  color: #9c27b0; /* Purple text */
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 80%;
+  margin: 20px auto;
+}
+
+#host-guess-area h3 {
+  font-size: 24px;
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 10px;
+}
+
+#host-guess-area p {
+  font-size: 18px;
+  font-family: 'Poppins', sans-serif;
+}
+
 
 
   </style>
@@ -788,7 +814,7 @@ ul {
         </div>
         <div id="current-turn-area">
           <h5 id="current-turn"></h5>
-          <div id="host-guess-area"></div>
+          <div id="host-guess-area" style="display:none;"></div>
           <div id="host-message" class="message-area"></div>
         </div>
       </div>

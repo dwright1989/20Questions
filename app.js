@@ -410,8 +410,10 @@ function listenToGameState() {
           <h3>${data.playerName} is about to make a guess...</h3>
           <p>Waiting for their guess submission.</p>
         `;
+        hostGuessArea.style.display = "block";
       } else if (hostGuessArea) {
         hostGuessArea.innerHTML = "";
+        hostGuessArea.style.display = "none";
       }
     });
   }
@@ -685,7 +687,7 @@ function displayGuessForVoting(guessData) {
       <button class="vote" data-vote="incorrect" data-guess-id="${guessData.id}"  onClick="markGuess('incorrect', '${guesserPlayerId}')">Incorrect</button>
     `;
     document.getElementById("host-guess-area").innerHTML = guessHtml;
-
+    document.getElementById("host-guess-area").display.style = "block";
     const voteButtons = document.querySelectorAll(".vote");
     voteButtons.forEach(button => {
       button.addEventListener("click", (event) => {
@@ -735,11 +737,12 @@ function markGuess(correctOrIncorrect, playerId) {
                }
 
                document.getElementById("host-guess-area").innerHTML = "";
-
+                document.getElementById("host-guess-area").style.display = "none";
                return guessesRef.remove()
                  .then(() => {
                      console.log("Guesses cleared.");
                      document.getElementById("host-guess-area").innerHTML = "";
+                     document.getElementById("host-guess-area").style.display = "none";
                  })
                  .catch(error => {
                      console.error("Failed to clear guesses:", error.message);
@@ -805,13 +808,14 @@ function showWinnerUI(playerId) {
       <button id="continue-game">Continue Game</button>
       <button id="end-game">End Game</button>
     `;
-
+    hostGuessArea.style.display = "block";
     document.getElementById("continue-game").addEventListener("click", () => {
       db.ref(`games/${gameCode}/players/${playerId}`).update({ eliminated: true }); // Optionally mark winner as done
        guessesRef.remove()
        .then(() => {
            console.log("Guesses cleared.");
            document.getElementById("host-guess-area").innerHTML = "";
+           document.getElementById("host-guess-area").style.display = "none";
        })
        .catch(error => {
            console.error("Failed to clear guesses:", error.message);
