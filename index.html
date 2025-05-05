@@ -426,7 +426,55 @@ ul {
   height: 170px;
 }
 
+
+#choose-type .button-group {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+
+#choose-type button {
+  background-color: #ffc0da;
+  border: none;
+  color: white;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  font-size: 22px;
+  font-weight: bold;
+  font-family: 'Comic Sans MS', 'Poppins', sans-serif;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  transition: all 0.2s ease-in-out;
+}
+
+#choose-type button:hover {
+  background-color: #ffa9cc;
+  transform: scale(1.05) rotate(-2deg);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+#choose-type button i {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+#choose-type {
+  display: flex;
+  justify-content: center;
+ }
+
+
+
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -448,22 +496,35 @@ ul {
     </div>
     <div id="host-question-area" style="display:none;">
       <div id="choose-topic" style="display:none;">
-        <p>Select difficulty:</p>
-        <div class="radio-group">
-          <label><input type="radio" name="difficulty" value="easy" checked> Easy</label>
-          <label><input type="radio" name="difficulty" value="medium"> Medium</label>
-          <label><input type="radio" name="difficulty" value="hard"> Hard</label>
+      <div id="choose-type">
+        <button class="cute-round-button" onclick="chooseType('hen')"><i class="fas fa-martini-glass-citrus" ></i>Hen Party</button>
+        <button class="cute-round-button" onclick="chooseType('movie-tv')"><i class="fas fa-film"></i> Movie/TV</button>
+      </div>
+
+        <div id="hen" style="display:none;">
+
+          Hen party details selection here
+        <button onClick="goBackToChooseType()">Go back</button>
         </div>
-        <h5>Select the category</h5>
-        <ul>
-          <li id="south-park" class="topic-choice" onclick="chooseTopic('southPark')">South Park</li>
-          <li id="friends" class="topic-choice" onclick="chooseTopic('friends')">Friends</li>
-          <li class="topic-choice">Harry Potter (Coming soon...)</li>
-          <li class="topic-choice">Horror Films (Coming soon...)</li>
-          <li class="topic-choice">Horror Baddies (Coming soon...)</li>
-          <li class="topic-choice">Disney Films (Coming soon...)</li>
-          <li class="topic-choice">Disney Characters (Coming soon...)</li>
-        </ul>
+        <div id="movie-tv" style="display:none;">
+          <p>Select difficulty:</p>
+          <div class="radio-group">
+            <label><input type="radio" name="difficulty" value="easy" checked> Easy</label>
+            <label><input type="radio" name="difficulty" value="medium"> Medium</label>
+            <label><input type="radio" name="difficulty" value="hard"> Hard</label>
+          </div>
+          <h5>Select the category</h5>
+          <ul>
+            <li id="south-park" class="topic-choice" onclick="chooseTopic('southPark')">South Park</li>
+            <li id="friends" class="topic-choice" onclick="chooseTopic('friends')">Friends</li>
+            <li class="topic-choice">Harry Potter (Coming soon...)</li>
+            <li class="topic-choice">Horror Films (Coming soon...)</li>
+            <li class="topic-choice">Horror Baddies (Coming soon...)</li>
+            <li class="topic-choice">Disney Films (Coming soon...)</li>
+            <li class="topic-choice">Disney Characters (Coming soon...)</li>
+          </ul>
+          <button  onClick="goBackToChooseType()">Go back</button>
+        </div>
     </div>
       <div id="game-area" style="display:none;">
         <h5>Category: <span id="chosen-category"></span></h5>

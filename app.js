@@ -218,7 +218,27 @@ function showOtherPlayersCharacters() {
 
 
 
+function chooseType(type){
+    const playersRef = db.ref(`games/${gameCode}/players`);
+      localStorage.setItem("type", type);
+      playersRef.once('value', snapshot => {
+        db.ref(`games/${gameCode}`).update({
+          type: type
+        });
+      });
+      if(type==='hen'){
+         document.getElementById("hen").style.display = "block";
+      }else{
+         document.getElementById("movie-tv").style.display = "block";
+      }
+       document.getElementById("choose-type").style.display = "none";
+}
 
+function goBackToChooseType(){
+    document.getElementById("hen").style.display = "none";
+    document.getElementById("movie-tv").style.display = "none";
+    document.getElementById("choose-type").style.display = "flex";
+}
 
 // Function to start the game
 function chooseTopic(topic) {
