@@ -682,6 +682,7 @@ function displayGuessForVoting(guessData) {
 
     const guessHtml = `
       <h3>Guess by ${playerGuessName}</h3>
+      <div id="confetti-container"></div>
       <div class="guess-text">${guessData.guess}</div><br>
       <button class="vote" data-vote="correct" data-guess-id="${guessData.id}" onClick="markGuess('correct', '${guesserPlayerId}')">Correct</button>
       <button class="vote" data-vote="incorrect" data-guess-id="${guessData.id}"  onClick="markGuess('incorrect', '${guesserPlayerId}')">Incorrect</button>
@@ -698,8 +699,6 @@ function displayGuessForVoting(guessData) {
 
       });
     });
-
-
   });
 }
 
@@ -908,6 +907,26 @@ function showScoreboard() {
 
 
 
+function launchConfetti() {
+  const container = document.getElementById("confetti-container");
+  for (let i = 0; i < 30; i++) {
+    const confetti = document.createElement("div");
+    confetti.classList.add("confetti");
+    confetti.style.left = Math.random() * 100 + "vw";
+    confetti.style.backgroundColor = pastelColor();
+    confetti.style.animationDuration = (2 + Math.random() * 2) + "s";
+    container.appendChild(confetti);
+
+    setTimeout(() => {
+      confetti.remove();
+    }, 4000);
+  }
+}
+
+function pastelColor() {
+  const pastelColors = ["#f48fb1", "#fce4ec", "#f8bbd0", "#e1bee7", "#d1c4e9", "#c8e6c9", "#fff9c4"];
+  return pastelColors[Math.floor(Math.random() * pastelColors.length)];
+}
 
 
 
