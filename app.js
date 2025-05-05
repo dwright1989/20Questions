@@ -682,10 +682,11 @@ function displayGuessForVoting(guessData) {
 
     const guessHtml = `
       <h3>Guess by ${playerGuessName}</h3>
-      <div id="confetti-container"></div>
-      <div class="guess-text">${guessData.guess}</div><br>
-      <button class="vote" data-vote="correct" data-guess-id="${guessData.id}" onClick="markGuess('correct', '${guesserPlayerId}')">Correct</button>
-      <button class="vote" data-vote="incorrect" data-guess-id="${guessData.id}"  onClick="markGuess('incorrect', '${guesserPlayerId}')">Incorrect</button>
+      <div class="guess-text">${guessData.guess}</div>
+      <div class="answer-buttons">
+        <button class="vote correct-button" data-vote="correct" data-guess-id="${guessData.id}" onClick="markGuess('correct', '${guesserPlayerId}')"><i class="fa fa-check" style="color: #66b26"></i></button>
+        <button class="vote incorrect-button" data-vote="incorrect" data-guess-id="${guessData.id}"  onClick="markGuess('incorrect', '${guesserPlayerId}')"><i class="fa fa-times" style="color: #ff66b3"></i></button>
+      </div>
     `;
     document.getElementById("host-guess-area").innerHTML = guessHtml;
     document.getElementById("host-guess-area").display.style = "block";
