@@ -216,8 +216,6 @@ function showOtherPlayersCharacters() {
 }
 
 
-
-
 function chooseType(type){
     const playersRef = db.ref(`games/${gameCode}/players`);
       localStorage.setItem("type", type);
