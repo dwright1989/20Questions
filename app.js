@@ -682,7 +682,7 @@ function displayGuessForVoting(guessData) {
 
     const guessHtml = `
       <h3>Guess by ${playerGuessName}</h3>
-      <p>${guessData.guess}</p>
+      <div class="guess-text">${guessData.guess}</div><br>
       <button class="vote" data-vote="correct" data-guess-id="${guessData.id}" onClick="markGuess('correct', '${guesserPlayerId}')">Correct</button>
       <button class="vote" data-vote="incorrect" data-guess-id="${guessData.id}"  onClick="markGuess('incorrect', '${guesserPlayerId}')">Incorrect</button>
     `;
