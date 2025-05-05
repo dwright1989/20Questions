@@ -658,6 +658,66 @@ ul {
   transform: scale(0.95);
 }
 
+#current-turn {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: #ff99cc; /* Soft pink background */
+  padding: 15px 30px;
+  border-radius: 30px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  display: inline-block;
+  position: relative;
+  margin: 20px auto;
+  transition: all 0.3s ease;
+}
+
+#current-turn:hover {
+  transform: scale(1.05);
+  background-color: #ffb3d9; /* Lighter pink on hover */
+}
+#current-turn {
+  font-family: 'Dancing Script', cursive;
+  font-size: 32px;
+  font-weight: bold;
+  color: #ff66b3; /* Soft pink color */
+  background-color: #fff0f6; /* Very light pink background */
+  padding: 15px 30px;
+  border-radius: 30px;
+  border: 3px solid #ff66b3;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: inline-block;
+  margin: 20px auto;
+  text-align: center;
+  animation: pulse 1.5s infinite;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    background-color: #fff0f6;
+  }
+  50% {
+    transform: scale(1.05);
+    background-color: #ffe6f1; /* Slightly darker pink */
+  }
+  100% {
+    transform: scale(1);
+    background-color: #fff0f6;
+  }
+}
+
+#current-turn:hover {
+  transform: scale(1.05);
+  background-color: #ffe6f1; /* Light pink on hover */
+}
+
+#current-turn-area {
+  display: flex;
+}
+
 
   </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -668,7 +728,7 @@ ul {
 </head>
 <body>
   <div id="host-screen" class="screen active">
-    <h1>20 Questions</h1>
+    <h1 style="margin-top: 0px;">20 Questions</h1>
     <div id="host-start-screen" class="screen active">
       <button onclick="newGame()" class="cute-button">New Game</button>
       <div id="game-code"></div>
@@ -726,9 +786,11 @@ ul {
           </div>
           <div id="host-questions-left"></div>
         </div>
-        <h5 id="current-turn"></h5>
-        <div id="host-guess-area"></div>
-        <div id="host-message" class="message-area"></div>
+        <div id="current-turn-area">
+          <h5 id="current-turn"></h5>
+          <div id="host-guess-area"></div>
+          <div id="host-message" class="message-area"></div>
+        </div>
       </div>
 
   </div>
