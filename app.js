@@ -919,19 +919,16 @@ function showScoreboard() {
       const li = document.createElement("li");
       li.classList.add("scoreboard-player");
 
-      // Access player and character data
       const character = player.character || {};
       const characterName = character.name || "No character";
       const characterImageURL = character.image || "placeholder.png";
 
-      // Create name and status section
       const nameDiv = document.createElement("div");
       nameDiv.classList.add("player-name");
-      nameDiv.textContent = player.name;  // Display player's name
+      nameDiv.textContent = player.name;
 
       const statusDiv = document.createElement("div");
       statusDiv.classList.add("player-status");
-
       if (player.win) {
         li.classList.add("winner");
         statusDiv.textContent = `Winner! (${player.questionsLeft || 0} questions left)`;
@@ -939,7 +936,6 @@ function showScoreboard() {
         statusDiv.textContent = `${player.questionsLeft || 0} questions left`;
       }
 
-      // Create character section (name + image)
       const characterDiv = document.createElement("div");
       characterDiv.classList.add("player-character");
 
@@ -955,7 +951,6 @@ function showScoreboard() {
       characterDiv.appendChild(img);
       characterDiv.appendChild(charNameEl);
 
-      // Append everything to the list item
       li.appendChild(nameDiv);
       li.appendChild(statusDiv);
       li.appendChild(characterDiv);
@@ -964,27 +959,28 @@ function showScoreboard() {
 
     document.getElementById("scoreboard").style.display = "block";
     document.getElementById("host-screen").style.display = "none";
-  });
 
-  document.querySelectorAll(".scoreboard-avatar").forEach(img => {
-    img.addEventListener("click", () => {
-      const overlay = document.createElement("div");
-      overlay.classList.add("image-overlay");
+    // ✅ Add click listener *after* DOM is updated
+    document.querySelectorAll(".scoreboard-avatar").forEach(img => {
+      img.addEventListener("click", () => {
+        const overlay = document.createElement("div");
+        overlay.classList.add("image-overlay");
 
-      const enlargedImg = document.createElement("img");
-      enlargedImg.src = img.src;
-      enlargedImg.alt = img.alt;
+        const enlargedImg = document.createElement("img");
+        enlargedImg.src = img.src;
+        enlargedImg.alt = img.alt;
 
-      overlay.appendChild(enlargedImg);
-      document.body.appendChild(overlay);
+        overlay.appendChild(enlargedImg);
+        document.body.appendChild(overlay);
 
-      overlay.addEventListener("click", () => {
-        overlay.remove();
+        overlay.addEventListener("click", () => {
+          overlay.remove();
+        });
       });
     });
   });
-
 }
+
 
 
 
