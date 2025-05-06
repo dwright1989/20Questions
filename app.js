@@ -381,10 +381,12 @@ function getTopicImage(topic){
         case "southPark":
             img.src = "images/south-park.png";
             img.alt = "South Park";
+            img.style.maxWidth = "100px";
             break;
         case "friends":
-            img.src = "images/friends.png";
+            img.src = "images/friends.jfif";
             img.alt = "friends";
+            img.style.maxWidth = "180px";
             break;
        default:
             img.alt="unknown";
@@ -432,6 +434,7 @@ function listenToGameState() {
 
         if (hostScreen.classList.contains("active")) {
           if (currentPlayer) {
+            document.getElementById("current-turn").style.display = "inline-block";
             document.getElementById("current-turn").innerHTML = `<h3>It's ${currentPlayer.name}'s turn!</h3>`;
           }
         }
@@ -542,7 +545,7 @@ function updateQuestionsLeftUI(players) {
         colorClass = 'many-questions'; // Green for more than 5 questions left
       }
     if (player.win) {
-      return `<p><span class="player-name winner">${player.name}</span> 🎉 Winner!</p>`;
+      return `<p><span class="player-name winner">${player.name}</span>Winner!</p>`;
     } else {
       return `<p><span class="player-name">${player.name}</span><span class="questions-left ${colorClass}">${questionsLeft} left</span></p>`;
     }
@@ -711,6 +714,7 @@ function markGuess(correctOrIncorrect, playerId) {
     console.log("The player: " + playerId + " was " + correctOrIncorrect);
 
     if (correctOrIncorrect === "correct") {
+        showTemporaryMessageForGuess("Correct");
         playerRef.update({ win: true });
         showWinnerUI(playerId);
          updateHostScreenPlayerStatus(playerId, true);
@@ -718,8 +722,9 @@ function markGuess(correctOrIncorrect, playerId) {
        playerRef.once("value").then(snapshot => {
            const playerData = snapshot.val();
            const playerName = playerData?.name || "A player";
-
-           showTemporaryMessage(`${playerName}'s guess was incorrect`, 2000);
+           document.getElementById("host-guess-area").innerHTML = "";
+           document.getElementById("host-guess-area").style.display = "none";
+           showTemporaryMessageForGuess("Incorrect");
 
            return reduceTheNumberOfQuestionsForPlayer(playerId).then(() => {
                // Wait for the DB to update, then fetch the updated value
@@ -732,12 +737,14 @@ function markGuess(correctOrIncorrect, playerId) {
                    console.log("moving to next turn");
                    moveToNextTurn();
                } else {
-                   console.log("no questions left — showing scoreboard");
-                   showScoreboard();
+                   console.log("no questions left — showing incorrect screen then scoreboard");
+                   showTemporaryMessageForGuess("Incorrect"); // your animated incorrect screen
+                   setTimeout(() => {
+                     showScoreboard();
+                   }, 3000); // Wait 2 seconds before showing scoreboard
                }
 
-               document.getElementById("host-guess-area").innerHTML = "";
-                document.getElementById("host-guess-area").style.display = "none";
+
                return guessesRef.remove()
                  .then(() => {
                      console.log("Guesses cleared.");
@@ -754,6 +761,53 @@ function markGuess(correctOrIncorrect, playerId) {
 
     // Check if the game should end after each guess
     checkIfGameShouldEnd();
+}
+
+function showTemporaryMessageForGuess(text, duration = 2000){
+    if(text==="Correct"){
+        const correctDiv = document.getElementById("correct");
+        correctDiv.classList.add("show");
+        const victorySound = document.getElementById("victory-sound");
+          victorySound.currentTime = 0;
+          victorySound.play().catch(e => console.warn("Autoplay failed:", e));
+
+        correctDiv.innerHTML = "You win";
+        const end = Date.now() + 1000;
+
+         (function frame() {
+           confetti({
+             particleCount: 4,
+             angle: 60,
+             spread: 55,
+             origin: { x: 0 },
+           });
+           confetti({
+             particleCount: 4,
+             angle: 120,
+             spread: 55,
+             origin: { x: 1 },
+           });
+
+           if (Date.now() < end) {
+             requestAnimationFrame(frame);
+           }
+         })();
+
+         setTimeout(() => {
+            correctDiv.classList.remove("show");
+          }, duration);
+    }else{
+        const incorrectDiv = document.getElementById("incorrect");
+        incorrectDiv.classList.add("show");
+        incorrectDiv.innerHTML = text;
+        // 🔊 Play fail sound
+          const failSound = document.getElementById("fail-sound");
+          failSound.currentTime = 0;
+          failSound.play().catch(e => console.warn("Autoplay failed:", e));
+         setTimeout(() => {
+            incorrectDiv.classList.remove("show");
+          }, duration);
+    }
 }
 
 function updateHostScreenPlayerStatus(playerId, hasWon) {
@@ -804,10 +858,16 @@ function showWinnerUI(playerId) {
   getPlayerNameFromId(playerId, (playerName) => {
     const hostGuessArea = document.getElementById("host-guess-area");
     hostGuessArea.innerHTML = `
-      <h3>🎉 ${playerName} has won! 🎉</h3>
-      <button id="continue-game">Continue Game</button>
-      <button id="end-game">End Game</button>
+      <div class="winner-announcement">
+        <h2 class="flash-text"> ${playerName} has WON the game!</h2>
+        <p class="subtext">They correctly guessed the answer. Absolute champion, gorgeous angel!</p>
+        <div class="winner-buttons">
+          <button id="continue-game" class="game-button">Continue Game</button>
+          <button id="end-game" class="game-button">End Game</button>
+        </div>
+      </div>
     `;
+    document.getElementById("current-turn").style.display = "none";
     hostGuessArea.style.display = "block";
     document.getElementById("continue-game").addEventListener("click", () => {
       db.ref(`games/${gameCode}/players/${playerId}`).update({ eliminated: true }); // Optionally mark winner as done
@@ -929,18 +989,6 @@ function pastelColor() {
   return pastelColors[Math.floor(Math.random() * pastelColors.length)];
 }
 
-
-
-function showTemporaryMessage(text, duration) {
-    const messageDiv = document.getElementById("host-message");
-    messageDiv.textContent = text;
-    messageDiv.style.opacity = 1;
-
-    setTimeout(() => {
-        messageDiv.style.opacity = 0;
-        messageDiv.textContent = "";
-    }, duration);
-}
 
 function checkIfGameShouldEnd() {
   const gameCode = localStorage.getItem("gameCode");
