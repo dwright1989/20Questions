@@ -370,6 +370,9 @@ function getTopicName(topic){
       case "friends":
         return "Friends";
         break;
+      case "cassie":
+      return "Cassie";
+      break;
       default:
         return "Unknown";
     }
@@ -386,7 +389,14 @@ function getTopicImage(topic){
         case "friends":
             img.src = "images/friends.jfif";
             img.alt = "friends";
-            img.style.maxWidth = "180px";
+            img.style.maxWidth = "160px";
+            img.classList.add("cute-image");
+            break;
+        case "cassie":
+            img.src = "images/cassie.jpg";
+            img.alt = "cassie";
+            img.style.maxWidth = "130px";
+            img.classList.add("cute-image");
             break;
        default:
             img.alt="unknown";
