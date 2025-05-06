@@ -933,9 +933,10 @@ function showScoreboard() {
       statusDiv.classList.add("player-status");
 
       if (player.win) {
-        statusDiv.textContent = `🎉 Winner! (${player.questionsLeft || 0} questions left)`;
+        li.classList.add("winner");
+        statusDiv.textContent = `Winner! (${player.questionsLeft || 0} questions left)`;
       } else {
-        statusDiv.textContent = `❌ ${player.questionsLeft || 0} questions left`;
+        statusDiv.textContent = `${player.questionsLeft || 0} questions left`;
       }
 
       // Create character section (name + image)
@@ -964,6 +965,25 @@ function showScoreboard() {
     document.getElementById("scoreboard").style.display = "block";
     document.getElementById("host-screen").style.display = "none";
   });
+
+  document.querySelectorAll(".scoreboard-avatar").forEach(img => {
+    img.addEventListener("click", () => {
+      const overlay = document.createElement("div");
+      overlay.classList.add("image-overlay");
+
+      const enlargedImg = document.createElement("img");
+      enlargedImg.src = img.src;
+      enlargedImg.alt = img.alt;
+
+      overlay.appendChild(enlargedImg);
+      document.body.appendChild(overlay);
+
+      overlay.addEventListener("click", () => {
+        overlay.remove();
+      });
+    });
+  });
+
 }
 
 
