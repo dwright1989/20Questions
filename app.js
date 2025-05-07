@@ -1,4 +1,3 @@
-
 const firebaseConfig = {
   apiKey: "AIzaSyBIx9m2RspAUHiMtINd96VQdWaprH-8m24",
   authDomain: "quizapp-765f0.firebaseapp.com",
@@ -449,7 +448,12 @@ function listenToGameState() {
           }
         }
         if (lastTurnId !== currentTurnId) {
-          hasGuessedThisTurn = false;
+          gameRef.update({
+              hasGuessedThisTurn: false
+            });
+            playersRef.child(currentTurnId).update({
+            hasGuessedThisTurn: false
+          });
           lastTurnId = currentTurnId;
         }
         if (playerScreen.classList.contains("active")) {
@@ -469,10 +473,15 @@ function listenToGameState() {
           if (currentPlayerId === currentTurnId) {
             document.getElementById("player-turn").innerHTML = `<h3>It's your turn, ${currentPlayer.name}!</h3>`;
              if (lastTurnId !== currentTurnId) {
-                hasGuessedThisTurn = false;
+                gameRef.update({
+                    hasGuessedThisTurn: false
+                  });
+                  playersRef.child(currentTurnId).update({
+                              hasGuessedThisTurn: false
+                            });
                 lastTurnId = currentTurnId;
               }
-            if (!hasGuessedThisTurn) {
+            if (!currentPlayer.hasGuessedThisTurn) {
                 document.getElementById("answer-turn-area").style.display = "flex";
                 document.getElementById("guess-answer").style.display = "block";
                  //  Force guess if only 1 question left
@@ -501,12 +510,23 @@ function listenToGameState() {
 
             if (guessAnswerButton && !guessAnswerButton.dataset.listenerAdded) {
               guessAnswerButton.addEventListener("click", () => {
-                console.log("Player going to guess the answer.");
-                 hasGuessedThisTurn = true;
-                guessAnswer();
+                const currentPlayerId = localStorage.getItem("playerId");
+
+                // Set hasGuessedThisTurn in both the root and the player object
+                gameRef.update({
+                  hasGuessedThisTurn: true
+                });
+
+                playersRef.child(currentPlayerId).update({
+                  hasGuessedThisTurn: true
+                });
+
+                guessAnswer(); // Show the guess input etc.
               });
+
               guessAnswerButton.dataset.listenerAdded = true;
             }
+
           } else {
             document.getElementById("player-turn").innerHTML = `<h3>It's ${currentPlayer.name}'s turn. Please wait...</h3>`;
             document.getElementById("end-turn").style.display = "none";
@@ -570,14 +590,14 @@ function updateQuestionsLeftUI(players) {
 
 
 function moveToNextTurn() {
-  hasGuessedThisTurn = false;
-  lastTurnId = null; // force reset so the new one is set on next tick
-  console.log("test move to next turn");
-
-  const gameCode = localStorage.getItem("gameCode");
+const gameCode = localStorage.getItem("gameCode");
   const playersRef = db.ref(`games/${gameCode}/players`);
   const gameRef = db.ref(`games/${gameCode}`);
+  gameRef.update({
+    hasGuessedThisTurn: false
+  });
 
+  lastTurnId = null; // force reset so the new one is set on next tick
   playersRef.once('value', playersSnapshot => {
     const players = playersSnapshot.val() || {};
     const playerIds = Object.keys(players);
@@ -637,13 +657,11 @@ function reduceTheNumberOfQuestionsForPlayer(currentTurnId) {
 
 
 function guessAnswer() {
-  hasGuessedThisTurn = false;
-  const gameCode = localStorage.getItem("gameCode");
-  const playersRef = db.ref(`games/${gameCode}/players`);
+const gameCode = localStorage.getItem("gameCode");
   const gameRef = db.ref(`games/${gameCode}`);
-  const currentPlayerId = localStorage.getItem("playerId");
-
-  getPlayerNameFromId(currentPlayerId, (playerName) => {
+    const playersRef = db.ref(`games/${gameCode}/players`);
+    const currentPlayerId = localStorage.getItem("playerId");
+    getPlayerNameFromId(currentPlayerId, (playerName) => {
     // Clear any previous guesses before starting a new one
     db.ref(`games/${gameCode}/guesses`).remove().then(() => {
       // Then mark this player as the current guesser
@@ -680,6 +698,7 @@ function guessAnswer() {
         });
 
         document.getElementById("player-guess-area").style.display = "none";
+        document.getElementById("answer-turn-area").style.display = "none";
       });
     });
   });
