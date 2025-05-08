@@ -274,6 +274,16 @@ function chooseTopic(topic) {
   listenToGameState();
 }
 
+function setTheme(topic) {
+  const link = document.getElementById('theme-stylesheet');
+  if (topic === 'cassie') {
+    link.href = 'css/default.css';
+  } else if (topic === 'horrorFilms') {
+    link.href = 'css/default.css';
+  } else {
+    link.href = 'css/default.css';
+  }
+}
 
 
 
@@ -411,6 +421,15 @@ function listenToGameState() {
   const playersRef = db.ref(`games/${gameCode}/players`);
   const guessesRef = db.ref(`games/${gameCode}/guesses`);
 
+  // Listen for topic changes and apply theme
+  gameRef.child("topic").on("value", (snapshot) => {
+    const topic = snapshot.val();
+    if (topic) {
+      setTheme(topic);
+    }
+  });
+
+
   //  Attach currentGuessingPlayer listener separately
   if (hostScreen.classList.contains("active")) {
     gameRef.child("currentGuessingPlayer").on("value", (snapshot) => {
@@ -462,7 +481,7 @@ function listenToGameState() {
         const thisPlayer = players[currentPlayerId];
         if (thisPlayer && thisPlayer.win) {
           // Show win message and hide rest of interface
-          document.getElementById("player-turn").innerHTML = `<h2>🎉 You guessed correctly and won! 🎉</h2>`;
+          document.getElementById("player-turn").innerHTML = `<h2>You guessed correctly and won!</h2>`;
           document.getElementById("answer-turn-area").style.display = "none";
           document.getElementById("player-question-area").style.display = "none";
           document.getElementById("end-turn").style.display = "none";
@@ -833,9 +852,12 @@ function showTemporaryMessageForGuess(text, duration = 2000){
           const failSound = document.getElementById("fail-sound");
           failSound.currentTime = 0;
           failSound.play().catch(e => console.warn("Autoplay failed:", e));
-         setTimeout(() => {
-            incorrectDiv.classList.remove("show");
-          }, duration);
+          setTimeout(() => {
+             incorrectDiv.classList.remove("show");
+             incorrectDiv.style.opacity = "0";              // 👈 force hide
+             incorrectDiv.style.pointerEvents = "none";     // 👈 disable click layer
+             incorrectDiv.textContent = "";                 // 👈 clear lingering text
+           }, duration);
     }
 }
 
