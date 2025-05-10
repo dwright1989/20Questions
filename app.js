@@ -45,6 +45,14 @@ function startGame() {
 
 // Function to start a new game (host)
 function newGame() {
+      // Clear any lingering localStorage data from previous sessions
+      localStorage.removeItem("gameCode");
+      localStorage.removeItem("playerId");
+      localStorage.removeItem("topic");
+      localStorage.removeItem("type");
+      localStorage.removeItem("difficulty");
+
+
   gameStarted = false;
   isHost = true;
   gameCode = generateGameCode();
