@@ -270,7 +270,7 @@ function chooseTopic(topic) {
   document.getElementById("chosen-category").style.display = "block";
   document.getElementById("chosen-category").innerHTML = topicTitle;
   document.getElementById("topic-image").appendChild(getTopicImage(topic));
-  assignPlayerCharacters(topic, difficulty);
+  assignPlayerCharacters(topic, difficulty, gameCode);
   listenToGameState();
 }
 
@@ -288,8 +288,8 @@ function setTheme(topic) {
 
 
 
-async function assignPlayerCharacters(topic, difficulty) {
-  const gameCode = localStorage.getItem("gameCode");
+async function assignPlayerCharacters(topic, difficulty, gameCode) {
+  //const gameCode = localStorage.getItem("gameCode");
   if (!gameCode) {
     console.error("Missing gameCode");
     return;
