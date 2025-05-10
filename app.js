@@ -278,15 +278,15 @@ function chooseTopic(topic) {
   document.getElementById("chosen-category").style.display = "block";
   document.getElementById("chosen-category").innerHTML = topicTitle;
   document.getElementById("topic-image").appendChild(getTopicImage(topic));
-  safeAssignCharactersWhenReady(topic, difficulty);
+  safeAssignCharactersWhenReady(topic, difficulty, gameCode);
   listenToGameState();
 }
 
-function safeAssignCharactersWhenReady(topic, difficulty) {
+function safeAssignCharactersWhenReady(topic, difficulty, gameCode) {
   const checkAndAssign = () => {
     const gameCode = localStorage.getItem("gameCode");
     if (gameCode) {
-      assignPlayerCharacters(topic, difficulty);
+      assignPlayerCharacters(topic, difficulty, gameCode);
     } else {
       console.log("Waiting for gameCode...");
       setTimeout(checkAndAssign, 100); // retry after 100ms
@@ -310,8 +310,8 @@ function setTheme(topic) {
 
 
 
-async function assignPlayerCharacters(topic, difficulty) {
-  const gameCode = localStorage.getItem("gameCode");
+async function assignPlayerCharacters(topic, difficulty, gameCode) {
+  //const gameCode = localStorage.getItem("gameCode");
   if (!gameCode) {
     console.error("Missing gameCode");
     return;
@@ -1132,8 +1132,10 @@ window.addEventListener("load", () => {
   const code = params.get("join");
 
   if (code) {
+    // Save immediately
     localStorage.setItem("gameCode", code);
 
+    // Show correct screen
     hostScreen.classList.remove("active");
     joinArea.classList.add("active");
     playerScreen.classList.add("active");
@@ -1144,19 +1146,22 @@ window.addEventListener("load", () => {
       playerNameInput.value = storedName;
     }
 
-    const tryJoin = () => {
+    const waitForPlayerNameThenJoin = () => {
       const name = playerNameInput.value.trim();
-      if (name) {
+
+      if (name && code) {
+        console.log("Joining game with:", name, code);
         localStorage.setItem("playerName", name);
-        joinGame();
+        joinGame(); // ✅ finally join
       } else {
-        console.log("Waiting for name...");
-        setTimeout(tryJoin, 100);
+        console.log("Waiting for name or code...");
+        setTimeout(waitForPlayerNameThenJoin, 100); // retry every 100ms
       }
     };
 
-    tryJoin(); // Begin checking every 100ms until a name is filled in
+    waitForPlayerNameThenJoin();
   }
 });
+
 
 
