@@ -145,7 +145,7 @@ function joinGame() {
           const topic = gameData.topic || "Unknown"; // Default to "Unknown" if no topic is set
           document.getElementById("game-category").innerHTML = getTopicName(topic);
           document.getElementById("current-player-details").innerHTML = playerName;
-          showOtherPlayersCharacters();
+          showOtherPlayersCharacters(code);
           console.log("about to listen to game state change from join game");
 
 
@@ -169,10 +169,10 @@ function joinGame() {
 
 
 
-function showOtherPlayersCharacters() {
+function showOtherPlayersCharacters(gameCode) {
     console.log("In showOtherPlayersCharacters");
 
-    const gameCode = localStorage.getItem("gameCode");  // Ensure gameCode is retrieved properly
+   // const gameCode = localStorage.getItem("gameCode");  // Ensure gameCode is retrieved properly
     console.log("Game Code:", gameCode);  // Check if gameCode is set correctly
     const playersRef = firebase.database().ref(`games/${gameCode}/players`);
     const currentPlayerId = localStorage.getItem("playerId");
@@ -343,7 +343,7 @@ async function assignPlayerCharacters(topic, difficulty, gameCode) {
 
     await db.ref().update(updates);
     console.log("Characters assigned to all players.");
-    showOtherPlayersCharacters();
+    showOtherPlayersCharacters(gameCode);
 
   } catch (error) {
     console.error("Error assigning characters:", error);
