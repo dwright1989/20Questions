@@ -1113,17 +1113,41 @@ function endGame() {
 
 
 
-// Auto-join via ?join=CODE
 window.addEventListener("load", () => {
   const params = new URLSearchParams(window.location.search);
   const code = params.get("join");
-  if (code && codeInput) {
+
+  if (code) {
+    // Save game code immediately so it's available for all later functions
+    localStorage.setItem("gameCode", code);
+
+    // Show player screen and pre-fill the join code input
     hostScreen.classList.remove("active");
     joinArea.classList.add("active");
     playerScreen.classList.add("active");
     codeInput.value = code;
+
+    // Optional: pre-fill name if stored
+    const storedName = localStorage.getItem("playerName");
+    if (storedName) {
+      playerNameInput.value = storedName;
+    }
+
+    // Automatically join if name already exists
+    if (playerNameInput.value.trim()) {
+      joinGame();
+    } else {
+      // Wait for the player to enter their name and click "Join"
+      const joinButton = document.getElementById("join-button");
+      if (joinButton && !joinButton.dataset.listenerAdded) {
+        joinButton.addEventListener("click", () => {
+          localStorage.setItem("playerName", playerNameInput.value.trim());
+          joinGame();
+        });
+        joinButton.dataset.listenerAdded = true;
+      }
+    }
   }
-
-
 });
+
 
