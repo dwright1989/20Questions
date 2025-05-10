@@ -45,14 +45,6 @@ function startGame() {
 
 // Function to start a new game (host)
 function newGame() {
-      // Clear any lingering localStorage data from previous sessions
-      localStorage.removeItem("gameCode");
-      localStorage.removeItem("playerId");
-      localStorage.removeItem("topic");
-      localStorage.removeItem("type");
-      localStorage.removeItem("difficulty");
-
-
   gameStarted = false;
   isHost = true;
   gameCode = generateGameCode();
@@ -278,23 +270,9 @@ function chooseTopic(topic) {
   document.getElementById("chosen-category").style.display = "block";
   document.getElementById("chosen-category").innerHTML = topicTitle;
   document.getElementById("topic-image").appendChild(getTopicImage(topic));
-  safeAssignCharactersWhenReady(topic, difficulty, gameCode);
+  assignPlayerCharacters(topic, difficulty);
   listenToGameState();
 }
-
-function safeAssignCharactersWhenReady(topic, difficulty, gameCode) {
-  const checkAndAssign = () => {
-    const gameCode = localStorage.getItem("gameCode");
-    if (gameCode) {
-      assignPlayerCharacters(topic, difficulty, gameCode);
-    } else {
-      console.log("Waiting for gameCode...");
-      setTimeout(checkAndAssign, 100); // retry after 100ms
-    }
-  };
-  checkAndAssign();
-}
-
 
 function setTheme(topic) {
   const link = document.getElementById('theme-stylesheet');
@@ -310,8 +288,8 @@ function setTheme(topic) {
 
 
 
-async function assignPlayerCharacters(topic, difficulty, gameCode) {
-  //const gameCode = localStorage.getItem("gameCode");
+async function assignPlayerCharacters(topic, difficulty) {
+  const gameCode = localStorage.getItem("gameCode");
   if (!gameCode) {
     console.error("Missing gameCode");
     return;
@@ -1127,41 +1105,17 @@ function endGame() {
 
 
 
+// Auto-join via ?join=CODE
 window.addEventListener("load", () => {
   const params = new URLSearchParams(window.location.search);
   const code = params.get("join");
-
-  if (code) {
-    // Save immediately
-    localStorage.setItem("gameCode", code);
-
-    // Show correct screen
+  if (code && codeInput) {
     hostScreen.classList.remove("active");
     joinArea.classList.add("active");
     playerScreen.classList.add("active");
     codeInput.value = code;
-
-    const storedName = localStorage.getItem("playerName");
-    if (storedName) {
-      playerNameInput.value = storedName;
-    }
-
-    const waitForPlayerNameThenJoin = () => {
-      const name = playerNameInput.value.trim();
-
-      if (name && code) {
-        console.log("Joining game with:", name, code);
-        localStorage.setItem("playerName", name);
-        joinGame(); // ✅ finally join
-      } else {
-        console.log("Waiting for name or code...");
-        setTimeout(waitForPlayerNameThenJoin, 100); // retry every 100ms
-      }
-    };
-
-    waitForPlayerNameThenJoin();
   }
+
+
 });
-
-
 
