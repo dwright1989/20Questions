@@ -382,6 +382,9 @@ function getTopicName(topic){
       case "cassie":
       return "Cassie";
       break;
+      case "horrorFilms":
+      return "Horror Films";
+      break;
       default:
         return "Unknown";
     }
@@ -407,6 +410,11 @@ function getTopicImage(topic){
             img.style.maxWidth = "130px";
             img.classList.add("cute-image");
             break;
+        case "horrorFilms":
+            img.src = "images/horror-films.jfif";
+            img.alt = "Horror Films";
+            img.style.maxWidth = "180px";
+             img.classList.add("cute-image");
        default:
             img.alt="unknown";
     }
