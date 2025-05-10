@@ -421,7 +421,7 @@ function getTopicImage(topic){
         case "hotties":
               img.src = "images/hotties.jpg";
              img.alt = "Hotties";
-             img.style.maxWidth = "180px";
+             img.style.maxWidth = "150px";
               img.classList.add("cute-image");
        default:
             img.alt="unknown";
