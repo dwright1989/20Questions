@@ -68,7 +68,7 @@ function newGame() {
 
   // Start listening for changes in player list and current turn
   console.log("about to listen to game state change from new game");
-  listenToGameState();
+  listenToGameState(gameCode);
 
   const shownPlayers = new Set(); // Track already displayed players
 
@@ -152,7 +152,7 @@ function joinGame() {
             // Only listen once!
             if (!hasStartedListening) {
               console.log("Player is now listening to game state changes");
-              listenToGameState();
+              listenToGameState(gameCode);
               hasStartedListening = true;
             }
 
@@ -271,7 +271,7 @@ function chooseTopic(topic) {
   document.getElementById("chosen-category").innerHTML = topicTitle;
   document.getElementById("topic-image").appendChild(getTopicImage(topic));
   assignPlayerCharacters(topic, difficulty, gameCode);
-  listenToGameState();
+  listenToGameState(gameCode);
 }
 
 function setTheme(topic) {
@@ -429,8 +429,8 @@ function getTopicImage(topic){
     return img;
 }
 
-function listenToGameState() {
-  const gameCode = localStorage.getItem("gameCode");
+function listenToGameState(gameCode) {
+  //const gameCode = localStorage.getItem("gameCode");
   const currentPlayerId = localStorage.getItem("playerId");
 
   const gameRef = db.ref(`games/${gameCode}`);
