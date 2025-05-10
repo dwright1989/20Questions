@@ -278,9 +278,23 @@ function chooseTopic(topic) {
   document.getElementById("chosen-category").style.display = "block";
   document.getElementById("chosen-category").innerHTML = topicTitle;
   document.getElementById("topic-image").appendChild(getTopicImage(topic));
-  assignPlayerCharacters(topic, difficulty);
+  safeAssignCharactersWhenReady(topic, difficulty);
   listenToGameState();
 }
+
+function safeAssignCharactersWhenReady(topic, difficulty) {
+  const checkAndAssign = () => {
+    const gameCode = localStorage.getItem("gameCode");
+    if (gameCode) {
+      assignPlayerCharacters(topic, difficulty);
+    } else {
+      console.log("Waiting for gameCode...");
+      setTimeout(checkAndAssign, 100); // retry after 100ms
+    }
+  };
+  checkAndAssign();
+}
+
 
 function setTheme(topic) {
   const link = document.getElementById('theme-stylesheet');
@@ -1118,35 +1132,30 @@ window.addEventListener("load", () => {
   const code = params.get("join");
 
   if (code) {
-    // Save game code immediately so it's available for all later functions
     localStorage.setItem("gameCode", code);
 
-    // Show player screen and pre-fill the join code input
     hostScreen.classList.remove("active");
     joinArea.classList.add("active");
     playerScreen.classList.add("active");
     codeInput.value = code;
 
-    // Optional: pre-fill name if stored
     const storedName = localStorage.getItem("playerName");
     if (storedName) {
       playerNameInput.value = storedName;
     }
 
-    // Automatically join if name already exists
-    if (playerNameInput.value.trim()) {
-      joinGame();
-    } else {
-      // Wait for the player to enter their name and click "Join"
-      const joinButton = document.getElementById("join-button");
-      if (joinButton && !joinButton.dataset.listenerAdded) {
-        joinButton.addEventListener("click", () => {
-          localStorage.setItem("playerName", playerNameInput.value.trim());
-          joinGame();
-        });
-        joinButton.dataset.listenerAdded = true;
+    const tryJoin = () => {
+      const name = playerNameInput.value.trim();
+      if (name) {
+        localStorage.setItem("playerName", name);
+        joinGame();
+      } else {
+        console.log("Waiting for name...");
+        setTimeout(tryJoin, 100);
       }
-    }
+    };
+
+    tryJoin(); // Begin checking every 100ms until a name is filled in
   }
 });
 
